@@ -1,0 +1,23 @@
+package db
+
+import (
+	"goldsteps/models"
+	"log"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
+var DB *gorm.DB
+
+// Init DB
+func InitDB() {
+	var err error
+	DB, err = gorm.Open(sqlite.Open("steps.db"), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+
+	// Auto migration of the tables
+	DB.AutoMigrate(&models.Event{})
+}
