@@ -10,7 +10,7 @@ import (
 
 func RegisterUserRoutes(e *echo.Group) {
 	// Get a user
-	e.GET("/user/:id", func(c echo.Context) error {
+	e.GET("/users/:id", func(c echo.Context) error {
 		id := c.Param("id")
 		var user models.User
 		result := db.DB.First(&user, id)
@@ -24,7 +24,7 @@ func RegisterUserRoutes(e *echo.Group) {
 	})
 
 	// Make a user
-	e.POST("/user", func(c echo.Context) error {
+	e.POST("/users", func(c echo.Context) error {
 		user := new(models.User)
 		if err := c.Bind(user); err != nil {
 			return c.JSON(http.StatusBadRequest, err)
@@ -37,7 +37,7 @@ func RegisterUserRoutes(e *echo.Group) {
 	})
 
 	// Update a user
-	e.PUT("/user/:id", func(c echo.Context) error {
+	e.PUT("/users/:id", func(c echo.Context) error {
 		id := c.Param("id")
 		var user models.User
 
@@ -63,7 +63,7 @@ func RegisterUserRoutes(e *echo.Group) {
 	})
 
 	// Delete a user
-	e.DELETE("/user/:id", func(c echo.Context) error {
+	e.DELETE("/users/:id", func(c echo.Context) error {
 		id := c.Param("id")
 		var user models.User
 

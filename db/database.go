@@ -19,5 +19,7 @@ func InitDB() {
 	}
 
 	// Auto migration of the tables
-	DB.AutoMigrate(&models.Event{})
+	if err := DB.AutoMigrate(&models.User{}, &models.Event{}); err != nil {
+		log.Fatal("Migration failed:", err)
+	}
 }

@@ -25,8 +25,8 @@ const (
 
 // Event Model
 type Event struct {
-	ID          uint `json:"id" gorm:"primaryKey"`
-	UserID      uint
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	UserID      uint      `json:"user_id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	StartTime   time.Time `json:"start_time"`
