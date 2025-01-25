@@ -6,18 +6,29 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
 	// Echo instance
 	e := echo.New()
 
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{echo.GET, echo.POST},
+	}))
+
 	// Init DB
 	db.InitDB()
 
 	// Root Endpoint
-	e.GET("/", func(c echo.Context) error {
+	e.GET("/hello", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome!")
+	})
+
+	e.GET("/test/data", func(c echo.Context) error {
+		data := map[string]string{"message": "Hello from API"}
+		return c.JSON(http.StatusOK, data)
 	})
 
 	// Set the routing
