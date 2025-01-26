@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getEventById, updateEvent, deleteEvent } from "@/utils/api";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function EventDetailModal() {
+export default function EventDetailModal({ onClose }: { onClose: () => void }) {
     const searchParams = useSearchParams(); // Query parameters
     const id = searchParams.get("id"); // `id` parameter
     console.log("ID from useSearchParams:", id); // Debug
@@ -23,7 +23,7 @@ export default function EventDetailModal() {
                 const data = await getEventById(id as string);
                 setEvent(data);
             } catch (err) {
-                setError("Failed to fetch event");
+                setError("Failed to fetch an event");
             }
         };
 
@@ -33,19 +33,29 @@ export default function EventDetailModal() {
     const handleUpdate = async () => {
         try {
             await updateEvent(id as string, event);
-            alert("Event updated!");
-            router.push("/events"); // Back to events page
+            // alert("Event updated!");
+            // router.push("/events"); // Back to events page
+            if (onClose) {
+                await onClose(); // Refresh events list
+            } else {
+                console.warn("onClose is not defined, events list will not refresh.");
+            }
         } catch (err) {
-            console.error("Failed to update event:", err);
+            console.error("Failed to update the event:", err);
         }
     };
 
     const handleDelete = async () => {
         try {
             await deleteEvent(id as string);
-            router.push("/events"); // Back to events page
+            // router.push("/events"); // Back to events page
+            if (onClose) {
+                await onClose(); // Refresh events list
+            } else {
+                console.warn("onClose is not defined, events list will not refresh.");
+            }
         } catch (err) {
-            console.error("Failed to delete event:", err);
+            console.error("Failed to delete the event:", err);
         }
     };
 
@@ -53,7 +63,7 @@ export default function EventDetailModal() {
         router.push("/events"); // Close modal
     };
 
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
+    if (error) return <p style={{ color: "#E72121" }}>{error}</p>;
     if (!event) return <p>Loading...</p>;
 
     return (
@@ -90,7 +100,7 @@ export default function EventDetailModal() {
                             onChange={(e) =>
                                 setEvent({ ...event, description: e.target.value })
                             }
-                            required
+                            // required
                         />
                     </label>
 
@@ -100,11 +110,11 @@ export default function EventDetailModal() {
                         <input
                             name="start_time"
                             type="datetime-local"
-                            value={event.start_time}
+                            value={new Date(event.start_time).toISOString().slice(0, 16)}
                             onChange={(e) =>
                                 setEvent({ ...event, start_time: e.target.value })
                             }
-                            required
+                            // required
                         />
                     </label>
 
@@ -114,11 +124,11 @@ export default function EventDetailModal() {
                         <input
                             name="end_time"
                             type="datetime-local"
-                            value={event.end_time}
+                            value={new Date(event.end_time).toISOString().slice(0, 16)}
                             onChange={(e) =>
                                 setEvent({ ...event, end_time: e.target.value })
                             }
-                            required
+                            // required
                         />
                     </label>
 
@@ -128,7 +138,7 @@ export default function EventDetailModal() {
                         <input
                             name="deadline"
                             type="datetime-local"
-                            value={event.deadline}
+                            value={new Date(event.deadline).toISOString().slice(0, 16)}
                             onChange={(e) =>
                                 setEvent({ ...event, deadline: e.target.value })
                             }
@@ -143,7 +153,7 @@ export default function EventDetailModal() {
                             name="status"
                             value={event.status}
                             onChange={(e) => setEvent({ ...event, status: e.target.value })}
-                            required
+                            // required
                         >
                             {statusOptions.map((option) => (
                                 <option key={option} value={option}>
@@ -160,7 +170,7 @@ export default function EventDetailModal() {
                             name="tag"
                             value={event.tag}
                             onChange={(e) => setEvent({ ...event, tag: e.target.value })}
-                            required
+                            // required
                         >
                             {tagOptions.map((option) => (
                                 <option key={option} value={option}>
@@ -174,7 +184,22 @@ export default function EventDetailModal() {
                     <button type="submit">Update</button>
 
                     {/* 削除ボタン */}
-                    <button type="button" onClick={handleDelete} style={{ color: "red" }}>
+                    {/* <button type="button" onClick={handleDelete} style={{
+                        color: "#E72121",
+                        border: "1px solid #E72121",
+                        padding: "0.5rem 1rem",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        margin: "1rem",
+                        // alignSelf: "right",
+                    }}>
+                        Delete
+                    </button> */}
+                    <button
+                        type="button"
+                        className="delete-button"
+                        onClick={handleDelete}
+                    >
                         Delete
                     </button>
                 </form>
@@ -182,34 +207,39 @@ export default function EventDetailModal() {
 
             <style jsx>{`
                 .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
                 }
                 .modal {
-                background: white;
-                padding: 2rem;
-                border-radius: 8px;
-                width: 500px;
-                max-width: 90%;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                position: relative;
+                    background: white;
+                    padding: 2rem;
+                    border-radius: 8px;
+                    width: 500px;
+                    max-width: 90%;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    position: relative;
                 }
                 .close-button {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: transparent;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: transparent;
+                    border: none;
+                    font-size: 1.5rem;
+                    padding: 0 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                }
+                .close-button:hover {
+                    background-color: #ccc;
                 }
                 label {
                 display: block;
@@ -225,13 +255,31 @@ export default function EventDetailModal() {
                 border-radius: 4px;
                 }
                 button[type="submit"] {
-                background-color: #0070f3;
-                color: white;
-                border: none;
-                padding: 0.5rem 1rem;
-                border-radius: 4px;
-                cursor: pointer;
-                margin-top: 1rem;
+                    background-color: #55BEEE;
+                    color: white;
+                    border: none;
+                    padding: 0.5rem 1rem;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin: 1rem 0;
+                    transition: background-color 0.3s ease;
+                }
+                button[type="submit"]:hover {
+                    background-color: #749AC7;
+                }
+                .delete-button {
+                    color: #e72121;
+                    background-color: transparent;
+                    border: 1px solid #e72121;
+                    padding: 0.5rem 1rem;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin: 1rem;
+                    transition: all 0.3s ease;
+                }
+                .delete-button:hover {
+                    color: white;
+                    background-color: #e72121;
                 }
             `}</style>
         </div>

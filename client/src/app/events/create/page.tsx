@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createEvent } from "@/utils/api";
 import { useRouter } from "next/navigation";
 
-export default function CreateEventModal() {
+export default function CreateEventModal({ onClose }: { onClose: () => void }) {
     const router = useRouter();
 
     // Define form state
@@ -52,9 +52,14 @@ export default function CreateEventModal() {
 
         try {
             await createEvent(formattedData);
-            router.push("/events");
+            // router.push("/events");
+            if (onClose) {
+                await onClose(); // Refresh events list
+            } else {
+                console.warn("onClose is not defined, events list will not refresh.");
+            }
         } catch (error) {
-            console.error("Failed to create event:", error);
+            console.error("Failed to create an event:", error);
         }
     };
 
@@ -130,7 +135,7 @@ export default function CreateEventModal() {
                             name="status"
                             value={form.status}
                             onChange={handleChange}
-                            required
+                            // required
                         >
                             <option value="" disabled>
                                 Select a status
@@ -149,7 +154,7 @@ export default function CreateEventModal() {
                             name="tag"
                             value={form.tag}
                             onChange={handleChange}
-                            required
+                            // required
                         >
                             <option value="" disabled>
                                 Select a tag
@@ -168,34 +173,39 @@ export default function CreateEventModal() {
 
             <style jsx>{`
                 .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
                 }
                 .modal {
-                background: white;
-                padding: 2rem;
-                border-radius: 8px;
-                width: 500px;
-                max-width: 90%;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                position: relative;
+                    background: white;
+                    padding: 2rem;
+                    border-radius: 8px;
+                    width: 500px;
+                    max-width: 90%;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    position: relative;
                 }
                 .close-button {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: transparent;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: transparent;
+                    border: none;
+                    font-size: 1.5rem;
+                    padding: 0 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                }
+                .close-button:hover {
+                    background-color: #ccc;
                 }
                 label {
                 display: block;
@@ -211,13 +221,17 @@ export default function CreateEventModal() {
                 border-radius: 4px;
                 }
                 button[type="submit"] {
-                background-color: #0070f3;
-                color: white;
-                border: none;
-                padding: 0.5rem 1rem;
-                border-radius: 4px;
-                cursor: pointer;
-                margin-top: 1rem;
+                    background-color: #55BEEE;
+                    color: white;
+                    border: none;
+                    padding: 0.5rem 1rem;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin-top: 1rem;
+                    transition: background-color 0.3s ease;
+                }
+                button[type="submit"]:hover {
+                    background-color: #749AC7;
                 }
             `}</style>
         </div>

@@ -13,8 +13,8 @@ import (
 func RegisterEventRoutes(e *echo.Group) {
 	// Get all events
 	e.GET("/events", func(c echo.Context) error {
-		// Print the request body
-		fmt.Println("Request Body:", c.Request().Body)
+		// Debug: Print the request body
+		// fmt.Println("Request Body:", c.Request().Body)
 
 		var events []models.Event
 		result := db.DB.Find(&events)
@@ -26,8 +26,8 @@ func RegisterEventRoutes(e *echo.Group) {
 
 	// Get an event
 	e.GET("/events/:id", func(c echo.Context) error {
-		// Print the request body
-		fmt.Println("Request Body:", c.Request().Body)
+		// Debug: Print the request body
+		// fmt.Println("Request Body:", c.Request().Body)
 		fmt.Println("Request Param:", c.Param("id"))
 
 		id := c.Param("id")

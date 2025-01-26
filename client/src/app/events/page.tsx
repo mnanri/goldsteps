@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getEvents } from "@/utils/api";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -19,20 +19,28 @@ export default function EventsPage() {
     const modal = searchParams.get("modal");
     const eventId = searchParams.get("id"); // Event ID
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                const data = await getEvents();
-                setEvents(data);
-            } catch (err) {
-                setError("Failed to fetch events");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchEvents();
+    // Fetch events
+    const fetchEvents = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await getEvents();
+            setEvents(data);
+        } catch (err) {
+            setError("Failed to fetch events");
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchEvents();
+    }, [fetchEvents]);
+
+    // Handle modal close and refresh events list
+    const handleModalClose = async () => {
+        await fetchEvents(); // refresh events list
+        router.push("/events"); // Close modal
+    };
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -42,15 +50,7 @@ export default function EventsPage() {
             <h1>Events</h1>
             <button
                 onClick={() => router.push("/events?modal=create")}
-                style={{
-                    marginBottom: "1rem",
-                    padding: "0.5rem 1rem",
-                    background: "#0070f3",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                }}
+                className="create-button"
             >
                 Create Event
             </button>
@@ -68,9 +68,27 @@ export default function EventsPage() {
                 ))}
             </ul>
 
-            {/* Render a modal */}
-            {modal === "create" && <CreateEventModal />}
-            {modal === "detail" && eventId && <EventDetailModal />}
+            {/* Modal */}
+            {modal === "create" && <CreateEventModal onClose={handleModalClose} />}
+            {modal === "detail" && eventId && (
+                <EventDetailModal /* id={eventId} */ onClose={handleModalClose} />
+            )}
+
+            <style jsx>{`
+                .create-button {
+                    margin-bottom: 1rem;
+                    padding: 0.5rem 1rem;
+                    background: #55beee;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }
+                .create-button:hover {
+                    background: #749AC7;
+                }
+            `}</style>
         </div>
     );
 }
