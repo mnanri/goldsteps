@@ -15,7 +15,7 @@ func main() {
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:3000"},
-		AllowMethods: []string{echo.GET, echo.POST},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
 	}))
 
 	// Init DB
@@ -26,7 +26,7 @@ func main() {
 		return c.String(http.StatusOK, "Welcome!")
 	})
 
-	e.GET("/test/data", func(c echo.Context) error {
+	e.GET("/api/data", func(c echo.Context) error {
 		data := map[string]string{"message": "Hello from API"}
 		return c.JSON(http.StatusOK, data)
 	})
