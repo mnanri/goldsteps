@@ -8,7 +8,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // API データを取得
+    // Get data from API
     const loadData = async () => {
       try {
         const data = await fetchData();
