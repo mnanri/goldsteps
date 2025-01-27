@@ -19,7 +19,7 @@ export default function CreateEventModal({ onClose }: { onClose: () => void }) {
     });
 
     // Define options for `status` and `tag` select fields
-    const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Completed"];
+    const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Done"];
     const tagOptions = ["Urgent", "Medium", "Low"];
 
     const handleChange = (

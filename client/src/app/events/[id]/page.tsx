@@ -14,7 +14,7 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
     const [error, setError] = useState<string | null>(null);
 
     // Define options for `status` and `tag` select fields
-    const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Completed"];
+    const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Done"];
     const tagOptions = ["Urgent", "Medium", "Low"];
 
     useEffect(() => {
@@ -32,6 +32,7 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
 
     const handleUpdate = async () => {
         try {
+            console.log("Updating event:", event); // Debug
             await updateEvent(id as string, event);
             // alert("Event updated!");
             // router.push("/events"); // Back to events page

@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
 
-const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Completed"];
+const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Done"];
 const tagOptions = ["Urgent", "Medium", "Low"];
 
 // Define color mappings
@@ -16,7 +16,7 @@ const statusColors: Record<string, string> = {
   "In Progress": "#87CEEB", // Light Blue
   "Pending": "#FFD700", // Gold
   "In Review": "#FFA500", // Orange
-  "Completed": "#32CD32", // Lime Green
+  "Done": "#32CD32", // Lime Green
 };
 
 const tagColors: Record<string, string> = {
@@ -74,57 +74,69 @@ export default function EventsPage() {
             </button>
 
             <ul className="events-list">
-                {events.map((event) => (
-                    <li key={event.id} className="event-item">
-                        <Link
-                            href={`/events?modal=detail&id=${event.id}`}
-                            className="event-title"
+                {events.map((event) => {
+                    const isDone = event.status === "Done";
+                    const isUrgent = event.tag === "Urgent" && event.status !== "Done";
+
+                    return (
+                        <li
+                            key={event.id}
+                            className="event-item"
+                            style={{
+                                border: isDone ? "2px solid #32CD32" : "1px solid #ccc",
+                                backgroundColor: isUrgent ? "#FFDDDD" : "#f9f9f9", // Light Red
+                            }}
                         >
-                            {event.title}
-                            <span className="tooltip">{event.description}</span>
-                        </Link>
-                        <div className="event-info">
-                            <p>
-                                <strong>Deadline:</strong>{" "}
-                                {new Intl.DateTimeFormat("ja-JP", {
-                                    year: "numeric",
-                                    month: "2-digit",
-                                    day: "2-digit",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                }).format(new Date(event.deadline))}
-                            </p>
-                            <p>
-                                <strong>Status:</strong>{" "}
-                                <span
-                                    style={{
-                                        padding: "0.2rem 0.5rem",
-                                        backgroundColor: statusColors[event.status] || "#E0E0E0", // Default Gray
-                                        borderRadius: "4px",
-                                        color: "white",
-                                        fontSize: "0.875rem",
-                                    }}
-                                >
-                                    {event.status}
-                                </span>
-                            </p>
-                            <p>
-                                <strong>Tag:</strong>{" "}
-                                <span
-                                    style={{
-                                        padding: "0.2rem 0.5rem",
-                                        backgroundColor: tagColors[event.tag] || "#E0E0E0", // Default Gray
-                                        borderRadius: "4px",
-                                        color: "white",
-                                        fontSize: "0.875rem",
-                                    }}
-                                >
-                                    {event.tag}
-                                </span>
-                            </p>
-                        </div>
-                    </li>
-                ))}
+                            <Link
+                                href={`/events?modal=detail&id=${event.id}`}
+                                className="event-title"
+                            >
+                                {event.title}
+                                <span className="tooltip">{event.description}</span>
+                            </Link>
+                            <div className="event-info">
+                                <p>
+                                    <strong>Deadline:</strong>{" "}
+                                    {new Intl.DateTimeFormat("ja-JP", {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    }).format(new Date(event.deadline))}
+                                </p>
+                                <p>
+                                    <strong>Status:</strong>{" "}
+                                    <span
+                                        style={{
+                                            padding: "0.2rem 0.5rem",
+                                            backgroundColor: statusColors[event.status] || "#E0E0E0",
+                                            borderRadius: "4px",
+                                            color: "white",
+                                            fontSize: "0.875rem",
+                                        }}
+                                    >
+                                        {event.status}
+                                    </span>
+                                </p>
+                                <p>
+                                    <strong>Tag:</strong>{" "}
+                                    <span
+                                        style={{
+                                            padding: "0.2rem 0.5rem",
+                                            backgroundColor: tagColors[event.tag] || "#E0E0E0",
+                                            borderRadius: "4px",
+                                            color: "white",
+                                            fontSize: "0.875rem",
+                                        }}
+                                    >
+                                        {event.tag}
+                                    </span>
+                                </p>
+                            </div>
+                        </li>
+                    );
+                })}
             </ul>
 
             {/* Modal */}
