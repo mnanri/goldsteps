@@ -103,7 +103,7 @@ export default function EventsPage() {
                                                 border: isDone
                                                     ? "2px solid #32CD32"
                                                     : "1px solid #ccc",
-                                                backgroundColor: isUrgent ? "#FFDDDD" : "#f9f9f9",
+                                                backgroundColor: isUrgent ? "#F8CACA" : "#f9f9f9",
                                             }}
                                         >
                                             <p>
