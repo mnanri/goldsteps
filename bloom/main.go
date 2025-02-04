@@ -250,8 +250,8 @@ func minkabuListedStocksFundamental() {
 
 func main() {
 	// bloomTopNews()
-	// fmt.Println("--------------------------------------------------")
-	//bloomTopNewsDescription()
+	// bloomTopNewsDescription()
+
 	// minkabuListedStocks()
 	minkabuListedStocksFundamental()
 }
