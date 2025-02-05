@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -184,6 +186,8 @@ func minkabuListedStocksFundamental() {
 		RandomDelay: 1 * time.Second,
 	})
 
+	var record []string
+
 	// Extract stock information from the main page
 	c.OnHTML("div.md_stockBoard", func(e *colly.HTMLElement) {
 		stockCode := strings.Split(e.Request.URL.Path, "/")[2]
@@ -195,8 +199,10 @@ func minkabuListedStocksFundamental() {
 		stockPrice = strings.TrimSpace(stockPrice)
 		stockPrice = strings.TrimSpace(strings.Split(stockPrice, "円")[0])
 		stockPrice = strings.ReplaceAll(stockPrice, ",", "")
+
 		// Output
 		fmt.Printf("銘柄コード: %s\n上場区分: %s\n銘柄: %s\n株価: %s\n", stockCode, listingSection, stockName, stockPrice)
+		record = []string{stockCode, listingSection, stockName, stockPrice, "", "", "", "", "", "", "", "", "", "", ""}
 
 		// Visit the fundamental page for more details
 		fundamentalURL := fmt.Sprintf("https://minkabu.jp/stock/%s/fundamental", stockCode)
@@ -213,39 +219,71 @@ func minkabuListedStocksFundamental() {
 			switch label {
 			case "社名":
 				fmt.Println("社名:", value)
+				record[4] = value
 			case "英文社名":
 				fmt.Println("英文社名:", value)
+				record[5] = value
 			case "業種":
 				fmt.Println("業種:", value)
+				record[6] = value
 			case "代表者":
 				fmt.Println("代表者:", value)
+				record[7] = value
 			case "決算":
 				fmt.Println("決算:", value)
+				record[8] = value
 			case "資本金":
 				fmt.Println("資本金:", value)
+				record[9] = value
 			case "住所":
 				fmt.Println("住所:", value)
+				record[10] = value
 			case "電話番号(IR)":
 				fmt.Println("電話番号(IR):", value)
+				record[11] = value
 			case "上場市場":
 				fmt.Println("上場市場:", value)
+				record[12] = value
 			case "上場年月日":
 				fmt.Println("上場年月日:", value)
+				record[13] = value
 			case "単元株数":
 				fmt.Println("単元株数:", value)
+				record[14] = value
 			}
 		})
-		fmt.Println("--------------------------------------------------")
+		if record[12] != "" || record[13] != "" || record[14] != "" {
+			writeToCSV(record)
+			fmt.Println("--------------------------------------------------")
+		}
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Printf("Failed to crawl %s: %v", r.Request.URL, err)
 	})
 
-	for code := 4000; code <= 4400; code += 5 {
+	for code := 1300; code <= 9999; code++ {
 		url := fmt.Sprintf("https://minkabu.jp/stock/%d", code)
 		c.Visit(url)
 	}
+}
+
+func writeToCSV(record []string) {
+	file, err := os.OpenFile("stock_data.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open CSV file: %v", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	if fileInfo, _ := file.Stat(); fileInfo.Size() == 0 {
+		headers := []string{"銘柄コード", "上場区分", "銘柄", "株価", "社名", "英文社名", "業種", "代表者", "決算", "資本金", "住所", "電話番号(IR)", "上場市場", "上場年月日", "単元株数"}
+		writer.Write(headers)
+	}
+
+	writer.Write(record)
 }
 
 func main() {
