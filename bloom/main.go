@@ -174,7 +174,7 @@ func minkabuListedStocks() {
 	}
 }
 
-func minkabuListedStocksFundamental() {
+func minkabuListedStocksFundamental(filename string) {
 	c := colly.NewCollector(
 		colly.AllowedDomains("minkabu.jp"),
 		colly.CacheDir("./colly_cache"),
@@ -186,6 +186,8 @@ func minkabuListedStocksFundamental() {
 		RandomDelay: 1 * time.Second,
 	})
 
+	// Write headers to CSV file
+	headers := []string{"銘柄コード", "上場区分", "銘柄", "株価", "社名", "英文社名", "業種", "代表者", "決算", "資本金", "住所", "電話番号(IR)", "上場市場", "上場年月日", "単元株数"}
 	var record []string
 
 	// Extract stock information from the main page
@@ -253,7 +255,7 @@ func minkabuListedStocksFundamental() {
 			}
 		})
 		if record[12] != "" || record[13] != "" || record[14] != "" {
-			writeToCSV(record)
+			writeToCSV(filename, headers, record)
 			fmt.Println("--------------------------------------------------")
 		}
 	})
@@ -268,8 +270,90 @@ func minkabuListedStocksFundamental() {
 	}
 }
 
-func writeToCSV(record []string) {
-	file, err := os.OpenFile("stock_data.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func yahooFinanceStockProfile(filename string, stock_list [][]string) {
+	// Colly instance
+	c := colly.NewCollector(
+		colly.AllowedDomains("finance.yahoo.co.jp"),
+	)
+
+	// Limit the request rate
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*yahoo.co.jp",
+		Delay:       2 * time.Second,
+		RandomDelay: 1 * time.Second,
+	})
+
+	// Write the company name to a CSV file
+	headers := []string{"特色", "連結事業", "従業員数（単独）", "従業員数（連結）", "平均年齢", "平均年収"}
+	record := make([]string, len(headers))
+
+	// Extract information based on the corresponding table headers
+	c.OnHTML("table.CompanyInformationDetail__table__BIq9", func(e *colly.HTMLElement) {
+		e.ForEach("tr", func(_ int, row *colly.HTMLElement) {
+			header := row.ChildText("th")
+			value := row.ChildText("td")
+
+			// Clean up the extracted text
+			value = strings.TrimSpace(value)
+			value = strings.ReplaceAll(value, "【特色】", "")
+			value = strings.ReplaceAll(value, "【連結事業】", "")
+			if strings.Contains(value, "人") {
+				value = strings.ReplaceAll(value, "人", "")
+				value = strings.ReplaceAll(value, ",", "")
+			}
+			if strings.Contains(value, "歳") {
+				value = strings.ReplaceAll(value, "歳", "")
+			}
+			if strings.Contains(value, "円") {
+				value = strings.ReplaceAll(value, "円", "")
+				value = strings.ReplaceAll(value, ",", "")
+				value = strings.ReplaceAll(value, "千", "000")
+				value = strings.ReplaceAll(value, "百万", "000000")
+			}
+
+			switch header {
+			case "特色":
+				record[0] = value
+				fmt.Println("特色:", value)
+			case "連結事業":
+				record[1] = value
+				fmt.Println("連結事業:", value)
+			case "従業員数（単独）":
+				record[2] = value
+				fmt.Println("従業員数（単独）:", value)
+			case "従業員数（連結）":
+				record[3] = value
+				fmt.Println("従業員数（連結）:", value)
+			case "平均年齢":
+				record[4] = value
+				fmt.Println("平均年齢:", value)
+			case "平均年収":
+				record[5] = value
+				fmt.Println("平均年収:", value)
+			}
+		})
+
+		// Write the extracted data to a CSV file
+		writeToCSV(filename, headers, record)
+	})
+
+	// Error handling
+	c.OnError(func(r *colly.Response, err error) {
+		log.Printf("Failed to crawl %s: %v", r.Request.URL, err)
+	})
+
+	for _, stock := range stock_list {
+		code := stock[0]
+		name := stock[2]
+		fmt.Printf("Code: %s\tName: %s\n", code, name)
+		url := fmt.Sprintf("https://finance.yahoo.co.jp/quote/%s.T/profile", code)
+		c.Visit(url)
+		fmt.Println("--------------------------------------------------")
+	}
+}
+
+func writeToCSV(filename string, headers []string, record []string) {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("Failed to open CSV file: %v", err)
 	}
@@ -279,11 +363,26 @@ func writeToCSV(record []string) {
 	defer writer.Flush()
 
 	if fileInfo, _ := file.Stat(); fileInfo.Size() == 0 {
-		headers := []string{"銘柄コード", "上場区分", "銘柄", "株価", "社名", "英文社名", "業種", "代表者", "決算", "資本金", "住所", "電話番号(IR)", "上場市場", "上場年月日", "単元株数"}
 		writer.Write(headers)
 	}
 
 	writer.Write(record)
+}
+
+func readFromCSV(filename string) [][]string {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("Failed to open CSV file: %v", err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		log.Fatalf("Failed to read CSV file: %v", err)
+	}
+
+	return records
 }
 
 func main() {
@@ -291,5 +390,15 @@ func main() {
 	// bloomTopNewsDescription()
 
 	// minkabuListedStocks()
-	minkabuListedStocksFundamental()
+	minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
+	// minkabuListedStocksFundamental(minkabu_stock_fundamental_filename)
+	// Display the data
+	records := readFromCSV(minkabu_stock_fundamental_filename)
+	// for _, record := range records {
+	// 	fmt.Printf("Code: %s\tName: %s\tPrice: %s\n", record[0], record[2], record[3])
+	// }
+
+	yahoo_finance_stock_profile_filename := "stock_profile.csv"
+
+	yahooFinanceStockProfile(yahoo_finance_stock_profile_filename, records)
 }
