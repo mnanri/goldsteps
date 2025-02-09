@@ -501,37 +501,6 @@ func stockDailyValue(code string) bool {
 }
 
 // Function to check if the date is within this year only
-// func isWithinOneYear(dateStr string) (bool, time.Time) {
-// 	layoutFull := "2006/01/02" // Format for full date
-// 	// layoutShort := "01/02"     // Format for month/day
-
-// 	// Remove time part (HH:mm) if present
-// 	dateParts := strings.Split(dateStr, " ")
-// 	cleanDate := dateParts[0] // Extract only the date part
-
-// 	// Get current date
-// 	now := time.Now()
-// 	thisYear := now.Year()
-// 	lastYear := now.Year() - 1
-
-// 	var parsedDate time.Time
-// 	var err error
-
-// 	// Try parsing with this year's full date
-// 	parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", thisYear, cleanDate))
-// 	if err != nil {
-// 		// Try parsing with last year's full date
-// 		parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", lastYear, cleanDate))
-// 		if err != nil {
-// 			log.Printf("Date parsing failed for: %s", dateStr)
-// 			return false, time.Time{}
-// 		}
-// 	}
-
-// 	oneYearAgo := now.AddDate(-1, 0, 0)
-// 	return parsedDate.After(oneYearAgo), parsedDate
-// }
-
 func isWithinOneYear(dateStr string) (bool, time.Time) {
 	layoutFull := "2006/01/02" // Format for full date (YYYY/MM/DD)
 	// layoutShort := "01/02"     // Format for month/day (MM/DD)
