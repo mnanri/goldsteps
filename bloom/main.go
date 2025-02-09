@@ -500,6 +500,194 @@ func stockDailyValue(code string) bool {
 	return stopHigh
 }
 
+// Function to check if the date is within this year only
+// func isWithinOneYear(dateStr string) (bool, time.Time) {
+// 	layoutFull := "2006/01/02" // Format for full date
+// 	// layoutShort := "01/02"     // Format for month/day
+
+// 	// Remove time part (HH:mm) if present
+// 	dateParts := strings.Split(dateStr, " ")
+// 	cleanDate := dateParts[0] // Extract only the date part
+
+// 	// Get current date
+// 	now := time.Now()
+// 	thisYear := now.Year()
+// 	lastYear := now.Year() - 1
+
+// 	var parsedDate time.Time
+// 	var err error
+
+// 	// Try parsing with this year's full date
+// 	parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", thisYear, cleanDate))
+// 	if err != nil {
+// 		// Try parsing with last year's full date
+// 		parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", lastYear, cleanDate))
+// 		if err != nil {
+// 			log.Printf("Date parsing failed for: %s", dateStr)
+// 			return false, time.Time{}
+// 		}
+// 	}
+
+// 	oneYearAgo := now.AddDate(-1, 0, 0)
+// 	return parsedDate.After(oneYearAgo), parsedDate
+// }
+
+func isWithinOneYear(dateStr string) (bool, time.Time) {
+	layoutFull := "2006/01/02" // Format for full date (YYYY/MM/DD)
+	// layoutShort := "01/02"     // Format for month/day (MM/DD)
+
+	// Remove time part (HH:mm) if present
+	dateParts := strings.Split(dateStr, " ")
+	cleanDate := dateParts[0] // Extract only the date part
+
+	// Get current date
+	now := time.Now()
+	oneYearAgo := now.AddDate(-1, 0, 0)
+
+	var parsedDate time.Time
+	var err error
+
+	// Try parsing with full date format (YYYY/MM/DD)
+	parsedDate, err = time.Parse(layoutFull, cleanDate)
+	if err == nil {
+		return parsedDate.After(oneYearAgo), parsedDate
+	}
+
+	// If parsing fails, try short format (MM/DD) and assume it's from this year or last year
+	thisYear := now.Year()
+	lastYear := now.Year() - 1
+
+	parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", thisYear, cleanDate))
+	if err == nil && parsedDate.After(oneYearAgo) {
+		return true, parsedDate
+	}
+
+	parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", lastYear, cleanDate))
+	if err == nil && parsedDate.After(oneYearAgo) {
+		return true, parsedDate
+	}
+
+	log.Printf("Date parsing failed for: %s", dateStr)
+	return false, time.Time{}
+}
+
+type Article struct {
+	Title  string `json:"title"`
+	Link   string `json:"link"`
+	Source string `json:"source"`
+	Date   string `json:"date"`
+}
+
+func stockNews(code string) {
+	var articles []Article // List to store articles
+
+	baseURL := "https://minkabu.jp/stock/" + code + "/news?page="
+	page := 1
+	stopCrawling := false
+
+	for {
+		if stopCrawling {
+			break
+		}
+
+		// Ex. https://minkabu.jp/stock/4385/news?page=1
+		url := fmt.Sprintf("%s%d", baseURL, page)
+		fmt.Println("Visiting:", url)
+
+		c := colly.NewCollector(
+			colly.AllowedDomains("minkabu.jp"),
+			colly.CacheDir("./colly_cache"),
+		)
+
+		c.Limit(&colly.LimitRule{
+			DomainGlob:  "*minkabu.jp",
+			Delay:       2 * time.Second,
+			RandomDelay: 1 * time.Second,
+		})
+
+		pageHasArticles := false // Track if this page contains valid articles
+
+		// Detect if the page does not exist
+		c.OnHTML(".md_card_ti", func(e *colly.HTMLElement) {
+			if strings.Contains(e.Text, "ページが見つかりませんでした") {
+				fmt.Println("Page not found. Stopping crawl.")
+				stopCrawling = true
+			}
+		})
+
+		// Extract news items
+		c.OnHTML("li", func(e *colly.HTMLElement) {
+			title := strings.TrimSpace(e.ChildText(".title_box a"))
+			link := e.ChildAttr(".title_box a", "href")
+			source := strings.TrimSpace(e.ChildText(".fcgl"))
+			date := strings.TrimSpace(e.ChildText(".flex.items-center"))
+
+			// Only process "適時開示" or "PR TIMES" articles
+			if source == "適時開示" || source == "PR TIMES" {
+				isRecent, articleDate := isWithinOneYear(date)
+
+				if !isRecent {
+					fmt.Printf("Found old article (%s), stopping crawl.\n", articleDate.Format("2006/01/02"))
+					stopCrawling = true
+					return
+				}
+
+				fmt.Println("Title:", title)
+				fmt.Println("Link: https://minkabu.jp" + link)
+				fmt.Println("Source:", source)
+				fmt.Println("Date:", date)
+				fmt.Println("----------------------")
+
+				articles = append(articles, Article{
+					Title:  title,
+					Link:   "https://minkabu.jp" + link,
+					Source: source,
+					Date:   date,
+				})
+
+				pageHasArticles = true
+			}
+		})
+
+		if !pageHasArticles {
+			fmt.Println("No articles found on this page.")
+		}
+
+		// Visit the page
+		err := c.Visit(url)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Move to the next page, even if the current page has no articles
+		page++
+	}
+
+	// Convert to JSON and write to file
+	writeJSON(articles, code)
+}
+
+// Function to write articles to a JSON file
+func writeJSON(articles []Article, code string) {
+	today := time.Now().Format("2006-01-02")
+	filename := fmt.Sprintf("articles_%s_%s.json", code, today)
+
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Fatal("Failed to create JSON file:", err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ") // Pretty print JSON
+	err = encoder.Encode(articles)
+	if err != nil {
+		log.Fatal("Failed to write JSON:", err)
+	}
+
+	fmt.Println("Articles saved to articles.json")
+}
+
 func main() {
 	// Get the top news from Bloomberg
 	// bloomTopNews()
@@ -522,5 +710,7 @@ func main() {
 
 	// Get the daily stock value
 	mercari_code := "4385"
-	stockDailyValue(mercari_code)
+	// stockDailyValue(mercari_code)
+
+	stockNews(mercari_code)
 }
