@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
 )
 
@@ -385,20 +387,140 @@ func readFromCSV(filename string) [][]string {
 	return records
 }
 
+func stockDailyValue(code string) bool {
+	c := colly.NewCollector(
+		colly.AllowedDomains("minkabu.jp"),
+	)
+
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*minkabu.jp",
+		Delay:       2 * time.Second,
+		RandomDelay: 1 * time.Second,
+	})
+
+	// Variables for stock information
+	var stockPrice, marketCap, issuedShares, prevClose, priceChange string
+	stopHigh := false
+
+	// Extract stock information from Minkabu
+	c.OnHTML(".stock_price", func(e *colly.HTMLElement) {
+		stockPrice = strings.TrimSpace(e.Text)
+		stockPrice = strings.ReplaceAll(stockPrice, "\n", "")
+		stockPrice = strings.TrimSpace(strings.Split(stockPrice, "円")[0])
+		stockPrice = strings.ReplaceAll(stockPrice, ",", "")
+	})
+
+	c.OnHTML("table.md_table tbody tr", func(e *colly.HTMLElement) {
+		label := strings.TrimSpace(e.ChildText("th"))
+		value := strings.TrimSpace(e.ChildText("td"))
+
+		// Identify the data based on the label
+		switch label {
+		case "時価総額": // Market capitalization
+			value = strings.ReplaceAll(value, "百万円", "000000")
+			value = strings.ReplaceAll(value, ",", "")
+			marketCap = value
+		case "発行済株数": // Issued shares
+			value = strings.ReplaceAll(value, "千株", "000")
+			value = strings.ReplaceAll(value, ",", "")
+			issuedShares = value
+		}
+	})
+
+	c.OnHTML("table.md_table.theme_light tr.ly_vamd", func(e *colly.HTMLElement) {
+		label := strings.TrimSpace(e.ChildText("th"))
+		value := strings.TrimSpace(e.ChildText("td"))
+
+		if strings.Contains(label, "前日終値") { // Match "前日終値"
+			value = strings.ReplaceAll(value, "円", "")
+			value = strings.ReplaceAll(value, ",", "")
+			prevClose = value
+		}
+	})
+
+	// Extract price change and check if "STOP高" exists
+	c.OnHTML(".md_stockBoard_stockTable", func(e *colly.HTMLElement) {
+		priceChange = strings.TrimSpace(e.ChildText(".stock_price_diff"))
+		if e.ChildText(".hi") == "STOP高" {
+			stopHigh = true
+		}
+	})
+
+	// Variables for financial data
+	var perSum, pbrSum float64
+	var count float64
+
+	// Extract PER and PBR values
+	c.OnHTML("table.md_table tr", func(e *colly.HTMLElement) {
+		cells := e.DOM.Find("td").Map(func(i int, s *goquery.Selection) string {
+			return strings.TrimSpace(s.Text())
+		})
+
+		if len(cells) >= 4 {
+			per, err1 := strconv.ParseFloat(strings.ReplaceAll(cells[2], ",", ""), 64)
+			pbr, err2 := strconv.ParseFloat(strings.ReplaceAll(cells[3], ",", ""), 64)
+			if err1 == nil && err2 == nil {
+				perSum += per
+				pbrSum += pbr
+				count++
+			}
+		}
+	})
+
+	c.OnScraped(func(r *colly.Response) {
+		if count > 0 {
+			fmt.Println("Stock Information for Code:", code)
+			fmt.Printf("Stock Price: %s\n", stockPrice)
+			fmt.Printf("Market Capitalization: %s\n", marketCap)
+			fmt.Printf("Issued Shares: %s\n", issuedShares)
+			fmt.Printf("Previous Closing Price: %s\n", prevClose)
+			fmt.Printf("Price Change: %s\n", priceChange)
+			if stopHigh {
+				fmt.Println("STOP高: Yes")
+			} else {
+				fmt.Println("STOP高: No")
+			}
+			fmt.Printf("Ave. PER: %.2f\n", perSum/count)
+			fmt.Printf("Ave. PBR: %.2f\n", pbrSum/count)
+		} else {
+			fmt.Println("Loading financial data...")
+		}
+	})
+
+	c.OnError(func(r *colly.Response, err error) {
+		log.Printf("Failed to crawl %s: %v", r.Request.URL, err)
+	})
+
+	// Visit the stock page
+	yahoo_url := fmt.Sprintf("https://minkabu.jp/stock/%s", code)
+	c.Visit(yahoo_url)
+	minkabu_url := fmt.Sprintf("https://minkabu.jp/stock/%s/daily_valuation", code)
+	c.Visit(minkabu_url)
+
+	return stopHigh
+}
+
 func main() {
+	// Get the top news from Bloomberg
 	// bloomTopNews()
 	// bloomTopNewsDescription()
 
+	// Get the listed stocks and their fundamental information
+	// minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
 	// minkabuListedStocks()
-	minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
 	// minkabuListedStocksFundamental(minkabu_stock_fundamental_filename)
+
 	// Display the data
-	records := readFromCSV(minkabu_stock_fundamental_filename)
+	// records := readFromCSV(minkabu_stock_fundamental_filename)
 	// for _, record := range records {
 	// 	fmt.Printf("Code: %s\tName: %s\tPrice: %s\n", record[0], record[2], record[3])
 	// }
 
-	yahoo_finance_stock_profile_filename := "stock_profile.csv"
+	// Get the stock profile from Yahoo Finance
+	// yahoo_finance_stock_profile_filename := "stock_profile.csv"
+	// yahooFinanceStockProfile(yahoo_finance_stock_profile_filename, records)
 
-	yahooFinanceStockProfile(yahoo_finance_stock_profile_filename, records)
+	// Get the daily stock value
+	mercari_code := "4385"
+	stockDailyValue(mercari_code)
 }
