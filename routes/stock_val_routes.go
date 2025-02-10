@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -44,10 +45,10 @@ func stockDailyValue(code string) (StockData, error) {
 
 	// Extract stock information from Minkabu
 	c.OnHTML(".stock_price", func(e *colly.HTMLElement) {
-		stockPrice := strings.TrimSpace(e.Text)
-		stockPrice = strings.ReplaceAll(stockPrice, "\n", "")
-		stockPrice = strings.TrimSpace(strings.Split(stockPrice, "円")[0])
-		stockPrice = strings.ReplaceAll(stockPrice, ",", "")
+		stockData.StockPrice = strings.TrimSpace(e.Text)
+		stockData.StockPrice = strings.ReplaceAll(stockData.StockPrice, "\n", "")
+		stockData.StockPrice = strings.TrimSpace(strings.Split(stockData.StockPrice, "円")[0])
+		stockData.StockPrice = strings.ReplaceAll(stockData.StockPrice, ",", "")
 	})
 
 	c.OnHTML("table.md_table tbody tr", func(e *colly.HTMLElement) {
@@ -57,12 +58,12 @@ func stockDailyValue(code string) (StockData, error) {
 		// Identify the data based on the label
 		switch label {
 		case "時価総額": // Market capitalization
-			value = strings.ReplaceAll(value, "百万円", "000000")
-			value = strings.ReplaceAll(value, ",", "")
+			value = strings.ReplaceAll(value, "百万円", ",000,000")
+			// value = strings.ReplaceAll(value, ",", "")
 			stockData.MarketCap = value
 		case "発行済株数": // Issued shares
-			value = strings.ReplaceAll(value, "千株", "000")
-			value = strings.ReplaceAll(value, ",", "")
+			value = strings.ReplaceAll(value, "千株", ",000")
+			// value = strings.ReplaceAll(value, ",", "")
 			stockData.IssuedShares = value
 		}
 	})
@@ -109,8 +110,8 @@ func stockDailyValue(code string) (StockData, error) {
 
 	c.OnScraped(func(r *colly.Response) {
 		if count > 0 {
-			stockData.AveragePER = perSum / count
-			stockData.AveragePBR = pbrSum / count
+			stockData.AveragePER = math.Round((perSum/count)*100) / 100
+			stockData.AveragePBR = math.Round((pbrSum/count)*100) / 100
 		} else {
 			stockData.AveragePER = 0
 			stockData.AveragePBR = 0
@@ -136,6 +137,8 @@ func stockDailyValue(code string) (StockData, error) {
 
 // Handler for stock daily value
 func getStockInfo(c echo.Context) error {
+	// For Debugging
+	// fmt.Println("Request Body:", c.Request().Body)
 	code := c.Param("code")
 	if code == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Stock code is required"})
@@ -151,5 +154,5 @@ func getStockInfo(c echo.Context) error {
 
 // RegisterStockRoutes registers stock routes
 func RegisterStockRoutes(e *echo.Group) {
-	e.GET("/stock/:code", getStockInfo)
+	e.GET("/stocks/:code", getStockInfo)
 }

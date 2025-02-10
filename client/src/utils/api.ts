@@ -6,7 +6,7 @@ const apiClient = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
-    timeout: 5000,
+    // timeout: 5000,
 });
 
 // Fetch Data
@@ -48,4 +48,16 @@ export const updateEvent = async (id: string, event: any) => {
 export const deleteEvent = async (id: string) => {
     const response = await apiClient.delete(`/events/${id}`);
     return response.data;
+};
+
+// Stocks...
+// Fetch Stock Data
+export const fetchStockData = async (code: string) => {
+    try {
+        const response = await apiClient.get(`/stocks/${code}`);
+        return response.data;
+    } catch (error) {
+        console.error("API Error:", error);
+        throw new Error("Failed to fetch stock data");
+    }
 };
