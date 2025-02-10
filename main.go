@@ -35,6 +35,7 @@ func main() {
 	api := e.Group("/api")
 	routes.RegisterEventRoutes(api)
 	routes.RegisterUserRoutes(api)
+	routes.RegisterStockRoutes(api)
 
 	// Awake server
 	e.Logger.Fatal(e.Start(":8080"))
