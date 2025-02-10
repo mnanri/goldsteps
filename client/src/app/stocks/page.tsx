@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { fetchStockData } from "@/utils/api";
+import { fetchStockData, fetchStockNews } from "@/utils/api";
 
 export default function StocksPage() {
     const [code, setCode] = useState("");
     const [data, setData] = useState<any>(null);
+    const [news, setNews] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [history, setHistory] = useState<string[]>([]); // Save search history
@@ -19,10 +20,15 @@ export default function StocksPage() {
         setLoading(true);
         setError("");
         setData(null);
+        setNews([]); // Initialize news data
 
         try {
             const stockData = await fetchStockData(stockCode);
+            const stockNews = await fetchStockNews(stockCode); // Fetch news data
+
             setData(stockData);
+            setNews(stockNews);
+
             setHistory((prev) =>
                 prev.includes(stockCode) ? prev : [...prev, stockCode]
             );
@@ -37,6 +43,7 @@ export default function StocksPage() {
         <div className="max-w-xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">銘柄検索</h1>
 
+            {/* Search */}
             <div className="flex space-x-2 mb-4">
                 <input
                     type="text"
@@ -58,7 +65,7 @@ export default function StocksPage() {
                 </button>
             </div>
 
-            {/* Display search history */}
+            {/* Search History */}
             {history.length > 0 && (
                 <div className="mb-4">
                     <h2 className="text-lg font-semibold mb-2">検索履歴</h2>
@@ -79,9 +86,11 @@ export default function StocksPage() {
                 </div>
             )}
 
+            {/* Loading or error */}
             {loading && <p>データ取得中...</p>}
             {error && <p className="text-red-500">{error}</p>}
 
+            {/* Stock data */}
             {data && (
                 <div className="border rounded p-4 mt-4">
                     <h2 className="text-xl font-bold">銘柄コード: {data.code}</h2>
@@ -93,6 +102,30 @@ export default function StocksPage() {
                     <p>発行済株数: {data.issued_shares}</p>
                     <p>平均PER: {data.average_per}</p>
                     <p>平均PBR: {data.average_pbr}</p>
+                </div>
+            )}
+
+            {/* News */}
+            {news.length > 0 && (
+                <div className="border rounded p-4 mt-4">
+                    <h2 className="text-xl font-bold">【過去1年間】対象銘柄の施策 & 適時開示</h2>
+                    <ul className="mt-2">
+                        {news.map((article, index) => (
+                            <li key={index} className="border-b py-2">
+                                <a
+                                    href={article.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    {article.title}
+                                </a>
+                                <p className="text-sm text-gray-600">
+                                    {article.date} - {article.source}
+                                </p>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
         </div>

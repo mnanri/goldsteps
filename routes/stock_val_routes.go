@@ -27,6 +27,13 @@ type StockData struct {
 	AveragePBR   float64 `json:"average_pbr"`
 }
 
+type Article struct {
+	Title  string `json:"title"`
+	Link   string `json:"link"`
+	Source string `json:"source"`
+	Date   string `json:"date"`
+}
+
 func stockDailyValue(code string) (StockData, error) {
 	c := colly.NewCollector(
 		colly.AllowedDomains("minkabu.jp"),
@@ -152,7 +159,144 @@ func getStockInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, stockData)
 }
 
+// Judge if the date is within one year
+func isWithinOneYear(dateStr string) (bool, time.Time) {
+	layoutFull := "2006/01/02" // Format for full date (YYYY/MM/DD)
+	// layoutShort := "01/02"     // Format for month/day (MM/DD)
+
+	// Remove time part (HH:mm) if present
+	dateParts := strings.Split(dateStr, " ")
+	cleanDate := dateParts[0] // Extract only the date part
+
+	// Get current date
+	now := time.Now()
+	oneYearAgo := now.AddDate(-1, 0, 0)
+
+	var parsedDate time.Time
+	var err error
+
+	// Try parsing with full date format (YYYY/MM/DD)
+	parsedDate, err = time.Parse(layoutFull, cleanDate)
+	if err == nil {
+		return parsedDate.After(oneYearAgo), parsedDate
+	}
+
+	// If parsing fails, try short format (MM/DD) and assume it's from this year or last year
+	thisYear := now.Year()
+	lastYear := now.Year() - 1
+
+	parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", thisYear, cleanDate))
+	if err == nil && parsedDate.After(oneYearAgo) {
+		return true, parsedDate
+	}
+
+	parsedDate, err = time.Parse(layoutFull, fmt.Sprintf("%d/%s", lastYear, cleanDate))
+	if err == nil && parsedDate.After(oneYearAgo) {
+		return true, parsedDate
+	}
+
+	log.Printf("Date parsing failed for: %s", dateStr)
+	return false, time.Time{}
+}
+
+func stockNews(code string) ([]Article, error) {
+	var articles []Article
+
+	baseURL := "https://minkabu.jp/stock/" + code + "/news?page="
+	page := 1
+	stopCrawling := false
+
+	for {
+		if stopCrawling {
+			break
+		}
+
+		url := fmt.Sprintf("%s%d", baseURL, page)
+		fmt.Println("Visiting:", url)
+
+		c := colly.NewCollector(
+			colly.AllowedDomains("minkabu.jp"),
+		)
+
+		c.Limit(&colly.LimitRule{
+			DomainGlob:  "*minkabu.jp",
+			Delay:       2 * time.Second,
+			RandomDelay: 1 * time.Second,
+		})
+
+		pageHasArticles := false
+
+		c.OnHTML(".md_card_ti", func(e *colly.HTMLElement) {
+			if strings.Contains(e.Text, "ページが見つかりませんでした") {
+				fmt.Println("Page not found. Stopping crawl.")
+				stopCrawling = true
+			}
+		})
+
+		c.OnHTML("li", func(e *colly.HTMLElement) {
+			title := strings.TrimSpace(e.ChildText(".title_box a"))
+			link := e.ChildAttr(".title_box a", "href")
+			source := strings.TrimSpace(e.ChildText(".fcgl"))
+			date := strings.TrimSpace(e.ChildText(".flex.items-center"))
+
+			if source == "適時開示" || source == "PR TIMES" {
+				isRecent, articleDate := isWithinOneYear(date)
+				if !isRecent {
+					fmt.Printf("Found old article (%s), stopping crawl.\n", articleDate.Format("2006/01/02"))
+					stopCrawling = true
+					return
+				}
+
+				// Debug
+				fmt.Println("DEBUG: Extracted Title:", title)
+				fmt.Println("DEBUG: Extracted Link:", link)
+				fmt.Println("DEBUG: Extracted Source:", source)
+				fmt.Println("DEBUG: Extracted Date:", date)
+
+				articles = append(articles, Article{
+					Title:  title,
+					Link:   "https://minkabu.jp" + link,
+					Source: source,
+					Date:   date,
+				})
+
+				pageHasArticles = true
+			}
+		})
+
+		if !pageHasArticles {
+			fmt.Println("No articles found on this page.")
+		}
+
+		err := c.Visit(url)
+		if err != nil {
+			log.Println("Failed to visit:", err)
+			break
+		}
+
+		page++
+	}
+
+	return articles, nil
+}
+
+// Handler for stock news
+func getStockNews(c echo.Context) error {
+	code := c.Param("code")
+	if code == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Stock code is required"})
+	}
+
+	articles, err := stockNews(code)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch news"})
+	}
+
+	return c.JSON(http.StatusOK, articles)
+}
+
 // RegisterStockRoutes registers stock routes
 func RegisterStockRoutes(e *echo.Group) {
 	e.GET("/stocks/:code", getStockInfo)
+	e.GET("/stocks/:code/news", getStockNews)
 }

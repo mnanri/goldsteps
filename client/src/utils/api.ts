@@ -61,3 +61,9 @@ export const fetchStockData = async (code: string) => {
         throw new Error("Failed to fetch stock data");
     }
 };
+
+// Fetch Stock News
+export const fetchStockNews = async (code: string) => {
+    const response = await apiClient.get(`/stocks/${code}/news`);
+    return response.data;
+};
