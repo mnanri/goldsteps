@@ -10,17 +10,17 @@ const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Done"];
 const tagOptions = ["Urgent", "Medium", "Low"];
 
 const statusColors: Record<string, string> = {
-    "To Do": "#333333",
-    "In Progress": "#00008B",
+    "To Do": "#00008B",
+    "In Progress": "#333333",
     "Pending": "#666666",
-    "In Review": "#0ABAB5",
-    "Done": "#32CD32",
+    "In Review": "#999999",
+    "Done": "#BBBBBB",
 };
 
 const tagColors: Record<string, string> = {
     Urgent: "#E72121",
-    Medium: "#FFA500",
-    Low: "#DFD000",
+    Medium: "#E6B422",
+    Low: "#AA89BD",
 };
 
 export default function EventsPage() {
