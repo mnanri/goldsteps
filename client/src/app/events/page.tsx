@@ -18,9 +18,9 @@ const statusColors: Record<string, string> = {
 };
 
 const tagColors: Record<string, string> = {
-    Urgent: "#E72121",
-    Medium: "#E6B422",
-    Low: "#AA89BD",
+    Urgent: "#ED382F",
+    Medium: "#FF6E39",
+    Low: "#22A6BF",
 };
 
 export default function EventsPage() {
@@ -102,8 +102,8 @@ export default function EventsPage() {
                                             style={{
                                                 border: isDone
                                                     ? "2px solid #32CD32"
-                                                    : "1px solid #ccc",
-                                                backgroundColor: isUrgent ? "#F8CACA" : "#f9f9f9",
+                                                    : isUrgent ? "2px solid #c6000c" : "1px solid #ccc",
+                                                backgroundColor: isUrgent ? "rgba(198, 0, 12, 0.1)" : "#f9f9f9",
                                             }}
                                         >
                                             <p>
