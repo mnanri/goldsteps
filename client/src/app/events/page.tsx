@@ -18,15 +18,17 @@ const statusColors: Record<string, string> = {
 };
 
 const tagColors: Record<string, string> = {
-    Urgent: "#ED382F",
-    Medium: "#FF6E39",
-    Low: "#22A6BF",
+    Urgent: "#E72121",
+    Medium: "#E6B422",
+    Low: "#C4C4C4",
 };
 
 export default function EventsPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [countdowns, setCountdowns] = useState<Record<string, string>>({});
+    const [showOverdue, setShowOverdue] = useState(false);
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -50,6 +52,38 @@ export default function EventsPage() {
         fetchEvents();
     }, [fetchEvents]);
 
+    // Calculate countdown
+    const calculateCountdown = (deadline: string) => {
+        const now = new Date().getTime();
+        const deadlineTime = new Date(deadline).getTime();
+        const timeDiff = deadlineTime - now;
+
+        if (timeDiff <= 0) return "Overdue";
+
+        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        return `${days}day ${hours}h ${minutes}min ${seconds}sec`;
+    };
+
+    // Update countdowns every second
+    useEffect(() => {
+        const updateCountdowns = () => {
+            const newCountdowns: Record<string, string> = {};
+            events.forEach((event) => {
+                newCountdowns[event.id] = calculateCountdown(event.deadline);
+            });
+            setCountdowns(newCountdowns);
+        };
+
+        updateCountdowns();
+        const interval = setInterval(updateCountdowns, 1000); // Update every seconds
+
+        return () => clearInterval(interval);
+    }, [events]);
+
     const handleModalClose = async () => {
         await fetchEvents();
         router.push("/events");
@@ -68,6 +102,14 @@ export default function EventsPage() {
                 Create Event
             </button>
 
+            <br />
+            <button 
+                onClick={() => setShowOverdue((prev) => !prev)} 
+                className="toggle-overdue-button"
+            >
+                {showOverdue ? "Hide Overdue" : "Show Overdue"}
+            </button>
+
             <div className="events-container">
                 {statusOptions.map((status) => (
                     <div key={status} className="status-column">
@@ -84,7 +126,10 @@ export default function EventsPage() {
                         </h2>
                         <div className="events-frame">
                             {events
-                                .filter((event) => event.status === status)
+                                .filter((event) => {
+                                    const isOverdue = countdowns[event.id] === "Overdue";
+                                    return event.status === status && (showOverdue || !isOverdue);
+                                })
                                 .sort(
                                     (a, b) =>
                                         new Date(a.deadline).getTime() -
@@ -94,6 +139,7 @@ export default function EventsPage() {
                                     const isDone = event.status === "Done";
                                     const isUrgent =
                                         event.tag === "Urgent" && event.status !== "Done";
+                                    const isOverdue = countdowns[event.id] === "Overdue";
 
                                     return (
                                         <div
@@ -101,13 +147,19 @@ export default function EventsPage() {
                                             className="event-item"
                                             style={{
                                                 border: isDone
-                                                    ? "2px solid #32CD32"
+                                                    ? "2px solid #55beee" 
                                                     : isUrgent ? "2px solid #c6000c" : "1px solid #ccc",
                                                 backgroundColor: isUrgent ? "rgba(198, 0, 12, 0.1)" : "#f9f9f9",
                                             }}
                                         >
                                             <p>
                                                 <strong>Title:</strong> {event.title}
+                                            </p>
+                                            <p>
+                                                <strong>In:</strong>
+                                                <span style={{ color: isOverdue ? "red" : "black" }}>
+                                                    {countdowns[event.id] || "Counting..."}
+                                                </span>
                                             </p>
                                             <p>
                                                 <strong>Deadline:</strong>{" "}
@@ -119,21 +171,16 @@ export default function EventsPage() {
                                                     minute: "2-digit",
                                                 }).format(new Date(event.deadline))}
                                             </p>
-                                            <p>
-                                                <strong>Tag:</strong>{" "}
+                                            <div className="tag-edit-container">
+                                                <strong>Severity:</strong>{" "}
                                                 <span
+                                                    className="tag"
                                                     style={{
-                                                        padding: "0.2rem 0.5rem",
-                                                        backgroundColor:
-                                                            tagColors[event.tag] || "#E0E0E0",
-                                                        borderRadius: "4px",
-                                                        color: "white",
+                                                        backgroundColor: tagColors[event.tag] || "#E0E0E0",
                                                     }}
                                                 >
                                                     {event.tag}
                                                 </span>
-                                            </p>
-                                            <div className="actions">
                                                 <button
                                                     onClick={() =>
                                                         router.push(`/events?modal=detail&id=${event.id}`)
@@ -143,6 +190,7 @@ export default function EventsPage() {
                                                     Edit
                                                 </button>
                                             </div>
+                                            
                                         </div>
                                     );
                                 })}
@@ -201,8 +249,8 @@ export default function EventsPage() {
                 }
 
                 .event-item:hover {
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+                transform: translateY(-3px);
                 background-color: #ffffff;
                 }
 
@@ -210,6 +258,19 @@ export default function EventsPage() {
                 margin-top: 0.5rem;
                 display: flex;
                 gap: 0.5rem;
+                }
+
+                .tag-edit-container {
+                    display: flex;
+                    
+                    align-items: center;
+                }
+                .tag {
+                    padding: 0.2rem 0.5rem;
+                    color: white;
+                    border-radius: 4px;
+                    margin: 0 0.5rem;
+
                 }
 
                 .edit-button,
