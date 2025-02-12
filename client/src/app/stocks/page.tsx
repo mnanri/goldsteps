@@ -39,6 +39,11 @@ export default function StocksPage() {
         }
     };
 
+    // Highlight keyword in text
+    const highlightLink = (title: string) => {
+        return title.includes("決算") ? "bg-gray-600 text-white font-bold px-2 py-1 rounded inline-block" : "";
+    };
+
     return (
         <div className="max-w-xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">銘柄検索</h1>
@@ -61,7 +66,7 @@ export default function StocksPage() {
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#55beee")}
                     disabled={loading}
                 >
-                    検索
+                    Run
                 </button>
             </div>
 
@@ -98,12 +103,40 @@ export default function StocksPage() {
                     <p>前日終値: {data.prev_close} 円</p>
                     <p>変動額: {data.price_change}</p>
                     <p>STOP高: {data.stop_high ? "あり" : "なし"}</p>
-                    <p>時価総額: {data.market_cap}</p>
-                    <p>発行済株数: {data.issued_shares}</p>
+                    <p>時価総額: {data.market_cap} 円</p>
+                    <p>発行済株数: {data.issued_shares} 株</p>
                     <p>平均PER: {data.average_per}</p>
                     <p>平均PBR: {data.average_pbr}</p>
                 </div>
             )}
+
+            {/* AI Settle */}
+            {data && (
+                <div>
+                    <p>
+                        <a
+                            href={`https://minkabu.jp/stock/${code}/settlement_summary`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                        >
+                            決算短信AI Summary
+                        </a>    
+                    </p>
+                </div>
+            )}
+            
+            {/* {code && (
+                <div className="mt-6 border rounded-lg shadow-md overflow-hidden">
+                    <h2 className="text-xl font-bold mb-2 p-4 bg-gray-100">決算サマリー</h2>
+                    <iframe
+                        src={`https://minkabu.jp/stock/${code}/settlement_summary`}
+                        width="100%"
+                        height="800px"
+                        className="border-none"
+                    />
+                </div>
+            )} */}
 
             {/* News */}
             {news.length > 0 && (
@@ -116,7 +149,8 @@ export default function StocksPage() {
                                     href={article.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-500 hover:underline"
+                                    // className="text-blue-500 hover:underline"
+                                    className={`text-blue-500 hover:underline ${highlightLink(article.title)}`}
                                 >
                                     {article.title}
                                 </a>
