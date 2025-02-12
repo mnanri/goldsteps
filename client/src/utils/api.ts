@@ -67,3 +67,13 @@ export const fetchStockNews = async (code: string) => {
     const response = await apiClient.get(`/stocks/${code}/news`);
     return response.data;
 };
+
+export const fetchBloombergNews = async () => {
+    try {
+        const response = await apiClient.get("/bloomberg"); // APIのエンドポイント
+        return response.data;
+    } catch (error) {
+        console.error("API Error:", error);
+        throw new Error("Failed to fetch news data");
+    }
+};

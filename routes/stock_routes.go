@@ -248,10 +248,10 @@ func stockNews(code string) ([]Article, error) {
 				}
 
 				// Debug
-				fmt.Println("DEBUG: Extracted Title:", title)
-				fmt.Println("DEBUG: Extracted Link:", link)
-				fmt.Println("DEBUG: Extracted Source:", source)
-				fmt.Println("DEBUG: Extracted Date:", date)
+				// fmt.Println("DEBUG: Extracted Title:", title)
+				// fmt.Println("DEBUG: Extracted Link:", link)
+				// fmt.Println("DEBUG: Extracted Source:", source)
+				// fmt.Println("DEBUG: Extracted Date:", date)
 
 				articles = append(articles, Article{
 					Title:  title,
@@ -265,7 +265,7 @@ func stockNews(code string) ([]Article, error) {
 		})
 
 		if !pageHasArticles {
-			fmt.Println("No articles found on this page.")
+			fmt.Println("No articles found on this page: ", page)
 		}
 
 		err := c.Visit(url)

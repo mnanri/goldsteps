@@ -65,7 +65,7 @@ func bloomTopNewsDescription() {
 	// Create a new Colly collector
 	c := colly.NewCollector(
 		colly.AllowedDomains("www.bloomberg.co.jp"), // Restrict crawling to specific domain
-		colly.CacheDir("./colly_cache"),             // Use cache to prevent duplicate visits
+		// colly.CacheDir("./colly_cache"),             // Use cache to prevent duplicate visits
 	)
 
 	// Limit request rate to avoid overloading the server
@@ -88,7 +88,7 @@ func bloomTopNewsDescription() {
 			title := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(e.Text, "\n", ""), "\t", ""))
 
 			if title != "" && strings.Contains(absoluteURL, "https://www.bloomberg.co.jp/news/articles") {
-				fmt.Printf("Link found: %s\nTitle: %s\n", absoluteURL, title)
+				// fmt.Printf("Link found: %s\nTitle: %s\n", absoluteURL, title)
 
 				// Visit the link if it hasn't been visited already
 				visited, err := c.HasVisited(absoluteURL)
@@ -97,6 +97,7 @@ func bloomTopNewsDescription() {
 					return
 				}
 				if !visited {
+					fmt.Printf("Visiting: %s\n", absoluteURL)
 					err := c.Visit(absoluteURL)
 					if err != nil {
 						log.Println("Visit failed:", err)
@@ -660,7 +661,7 @@ func writeJSON(articles []Article, code string) {
 func main() {
 	// Get the top news from Bloomberg
 	// bloomTopNews()
-	// bloomTopNewsDescription()
+	bloomTopNewsDescription()
 
 	// Get the listed stocks and their fundamental information
 	// minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
@@ -678,8 +679,8 @@ func main() {
 	// yahooFinanceStockProfile(yahoo_finance_stock_profile_filename, records)
 
 	// Get the daily stock value
-	mercari_code := "4385"
+	// mercari_code := "4385"
 	// stockDailyValue(mercari_code)
 
-	stockNews(mercari_code)
+	// stockNews(mercari_code)
 }

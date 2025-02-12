@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getEvents } from "@/utils/api";
+import { getEvents, fetchBloombergNews } from "@/utils/api";
 import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
@@ -30,6 +30,11 @@ export default function EventsPage() {
     const [countdowns, setCountdowns] = useState<Record<string, string>>({});
     const [showOverdue, setShowOverdue] = useState(false);
 
+    // For Bloomberg news
+    const [news, setNews] = useState<any[]>([]);
+    const [newsLoading, setNewsLoading] = useState(false);
+    const [newsError, setNewsError] = useState<string | null>(null);
+
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -51,6 +56,19 @@ export default function EventsPage() {
     useEffect(() => {
         fetchEvents();
     }, [fetchEvents]);
+
+    const fetchNews = useCallback(async () => {
+        setNewsLoading(true);
+        setNewsError(null);
+        try {
+            const data = await fetchBloombergNews();
+            setNews(data);
+        } catch (err) {
+            setNewsError("Failed to fetch news");
+        } finally {
+            setNewsLoading(false);
+        }
+    }, []);
 
     // Calculate countdown
     const calculateCountdown = (deadline: string) => {
@@ -105,7 +123,7 @@ export default function EventsPage() {
             <br />
             <button 
                 onClick={() => setShowOverdue((prev) => !prev)} 
-                className="toggle-overdue-button"
+                className={`toggle-overdue-button ${showOverdue ? "hide" : "show"}`}
             >
                 {showOverdue ? "Hide Overdue" : "Show Overdue"}
             </button>
@@ -156,7 +174,7 @@ export default function EventsPage() {
                                                 <strong>Title:</strong> {event.title}
                                             </p>
                                             <p>
-                                                <strong>In:</strong>
+                                                <strong>In: </strong>
                                                 <span style={{ color: isOverdue ? "red" : "black" }}>
                                                     {countdowns[event.id] || "Counting..."}
                                                 </span>
@@ -198,6 +216,33 @@ export default function EventsPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Bloomberg News */}
+            <button onClick={fetchNews} className="news-button">View Headline</button>
+
+            {newsLoading && <p>News Loading...</p>}
+            {newsError && <p style={{ color: "red" }}>{newsError}</p>}
+            {news.length > 0 && (
+                <div className="news-container">
+                    <h2 className="news-title">Bloomberg Latest News</h2>
+                    <div className="news-grid">
+                        {news.map((article, index) => (
+                            <div key={index} className="news-card">
+                                <a 
+                                    href={article.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="news-link"
+                                >
+                                    {article.title}
+                                </a>
+                                {/* <p className="news-description">{article.description}</p> */}
+                                <p>{article.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {modal === "create" && <CreateEventModal onClose={handleModalClose} />}
             {modal === "detail" && eventId && (
@@ -293,6 +338,111 @@ export default function EventsPage() {
 
                 .edit-button:hover {
                 background-color: #749AC7;
+                }
+
+                .toggle-overdue-button {
+                    // margin-top: 1rem;
+                    padding: 0.5rem 1rem;
+                    border: 2px solid #808080;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s, color 0.3s;
+                }
+
+                /* Show Overdue */
+                .toggle-overdue-button.show {
+                    background: transparent;
+                    color: #808080;
+                }
+
+                .toggle-overdue-button.show:hover {
+                    background: #e0e0e0;
+                }
+
+                /* Hide Overdue */
+                .toggle-overdue-button.hide {
+                    background: #808080;
+                    color: white;
+                }
+
+                .toggle-overdue-button.hide:hover {
+                    background: #666666;
+                }
+
+                .news-button {
+                    margin-top: 1rem;
+                    padding: 0.5rem 1rem;
+                    background: #55beee;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }
+
+                .news-button:hover {
+                    background: #749ac7;
+                }
+
+                .news-container {
+                    margin-top: 1.5rem;
+                    padding: 1rem;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    background-color: #f9f9f9;
+                }
+
+                .news-title {
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    margin-bottom: 1rem;
+                }
+
+                .news-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 1rem;
+                }
+
+                .news-card {
+                    padding: 1rem;
+                    background: white;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                }
+
+                .news-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                }
+
+                .news-link {
+                    display: block;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    color: #0073e6;
+                    text-decoration: none;
+                    margin-bottom: 0.5rem;
+                }
+
+                .news-link:hover {
+                    text-decoration: underline;
+                }
+
+                .news-description {
+                    font-size: 0.875rem;
+                    color: #444;
+                    line-height: 1.5;
+                    max-height: 0;
+                    opacity: 0;
+                    overflow: hidden;
+                    transition: max-height 0.3s ease, opacity 0.3s ease;
+                }
+
+                .news-card:hover .news-description {
+                    max-height: 500px;
+                    opacity: 1;
                 }
             `}</style>
         </div>
