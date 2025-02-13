@@ -61,7 +61,7 @@ func fetchBloombergNews() ([]NewsArticle, error) {
 
 	// Error handling
 	c.OnError(func(r *colly.Response, err error) {
-		log.Printf("リクエスト失敗 URL: %s, エラー: %v", r.Request.URL, err)
+		log.Printf("Request URL: %s, Error: %v", r.Request.URL, err)
 	})
 
 	// Start the crawl
