@@ -98,6 +98,7 @@ func bloomTopNewsDescription() {
 				}
 				if !visited {
 					fmt.Printf("Visiting: %s\n", absoluteURL)
+					fmt.Printf("Article found: %s\n", title)
 					err := c.Visit(absoluteURL)
 					if err != nil {
 						log.Println("Visit failed:", err)
