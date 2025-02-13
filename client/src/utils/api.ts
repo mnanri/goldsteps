@@ -68,6 +68,7 @@ export const fetchStockNews = async (code: string) => {
     return response.data;
 };
 
+// Fetch Bloomberg News
 export const fetchNewsArticle = async () => {
     try {
         const response = await apiClient.get("/bloomberg");
@@ -76,4 +77,10 @@ export const fetchNewsArticle = async () => {
         console.error("API Error:", error);
         throw new Error("Failed to fetch news data");
     }
+};
+
+// Search Bloomberg News
+export const searchNewsArticles = async (query: string) => {
+    const response = await apiClient.get(`/bloomberg/search?q=${encodeURIComponent(query)}`);
+    return response.data;
 };

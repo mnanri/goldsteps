@@ -3,6 +3,7 @@ package routes
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -93,8 +94,36 @@ func getSavedBloombergNews(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
+func searchNewsArticles(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		query := c.QueryParam("q") // Parameter
+		// fmt.Println("Parameter: ", query)
+
+		// Decode Japanese
+		decodedQuery, err := url.QueryUnescape(query)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid query"})
+		}
+
+		if decodedQuery == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Search query is required"})
+		}
+
+		articles, err := repository.SearchNewsArticles(db, decodedQuery)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search news"})
+		}
+
+		// DEBUG:
+		// fmt.Println("Results: ", articles)
+
+		return c.JSON(http.StatusOK, articles)
+	}
+}
+
 // Register Bloomberg Routes
 func RegisterBloombergRoutes(e *echo.Group, db *gorm.DB) {
 	e.GET("/bloomberg", getBloombergNews(db))
 	e.GET("/bloomberg/saved", getSavedBloombergNews(db))
+	e.GET("/bloomberg/search", searchNewsArticles(db))
 }

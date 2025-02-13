@@ -38,3 +38,17 @@ func GetAllNewsArticles(db *gorm.DB) ([]models.NewsArticle, error) {
 	err := db.Find(&articles).Error
 	return articles, err
 }
+
+// Search articles
+func SearchNewsArticles(db *gorm.DB, query string) ([]models.NewsArticle, error) {
+	var articles []models.NewsArticle
+
+	// DEBUG
+	// fmt.Println("Query: ", query)
+
+	// Query
+	err := db.Where("title LIKE ?", "%"+query+"%").
+		Find(&articles).Error
+
+	return articles, err
+}
