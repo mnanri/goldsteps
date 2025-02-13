@@ -251,58 +251,58 @@ export default function EventsPage() {
 
             <style jsx>{`
                 .create-button {
-                margin-bottom: 1rem;
-                padding: 0.5rem 1rem;
-                background: #55beee;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background 0.3s;
+                    margin-bottom: 1rem;
+                    padding: 0.5rem 1rem;
+                    background: #55beee;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
                 }
                 .create-button:hover {
-                background: #749ac7;
+                    background: #749ac7;
                 }
 
                 .events-container {
-                display: flex;
-                gap: 1rem;
-                margin-top: 1rem;
+                    display: flex;
+                    gap: 1rem;
+                    margin-top: 1rem;
                 }
 
                 .status-column {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
                 }
 
                 .events-frame {
-                margin-top: 0.5rem;
-                padding: 0.5rem;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: #f1f1f1;
-                max-height: 400px;
-                overflow-y: auto;
+                    margin-top: 0.5rem;
+                    padding: 0.5rem;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    background-color: #f1f1f1;
+                    max-height: 400px;
+                    overflow-y: auto;
                 }
 
                 .event-item {
-                margin-bottom: 0.5rem;
-                padding: 0.5rem;
-                border-radius: 4px;
-                transition: box-shadow 0.3s ease, transform 0.3s ease;
+                    margin-bottom: 0.5rem;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    transition: box-shadow 0.3s ease, transform 0.3s ease;
                 }
 
                 .event-item:hover {
-                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-                transform: translateY(-3px);
-                background-color: #ffffff;
+                    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+                    transform: translateY(-3px);
+                    background-color: #ffffff;
                 }
 
                 .actions {
-                margin-top: 0.5rem;
-                display: flex;
-                gap: 0.5rem;
+                    margin-top: 0.5rem;
+                    display: flex;
+                    gap: 0.5rem;
                 }
 
                 .tag-edit-container {
@@ -320,24 +320,24 @@ export default function EventsPage() {
 
                 .edit-button,
                 .delete-button {
-                padding: 0.1rem 0.6rem;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
+                    padding: 0.1rem 0.6rem;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
                 }
 
                 .edit-button {
-                background-color: #999999;
-                color: white;
+                    background-color: #999999;
+                    color: white;
                 }
 
                 .delete-button {
-                background-color: #e72121;
-                color: white;
+                    background-color: #e72121;
+                    color: white;
                 }
 
                 .edit-button:hover {
-                background-color: #749AC7;
+                    background-color: #749AC7;
                 }
 
                 .toggle-overdue-button {

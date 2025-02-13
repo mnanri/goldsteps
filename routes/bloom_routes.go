@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
@@ -40,22 +39,11 @@ func fetchBloombergNews() ([]NewsArticle, error) {
 
 		// Filter out empty titles and only include articles
 		if title != "" && strings.Contains(absoluteURL, "https://www.bloomberg.co.jp/news/articles") {
-			articles = append(articles, NewsArticle{
+			article := &NewsArticle{
 				Title: title,
 				Link:  absoluteURL,
-			})
-		}
-	})
-
-	// Extract article descriptions
-	c.OnHTML(`script[type="application/ld+json"]`, func(e *colly.HTMLElement) {
-		var article NewsArticle
-		err := json.Unmarshal([]byte(e.Text), &article)
-		if err == nil && article.Description != "" {
-			// Append description to the last article in the slice
-			if len(articles) > 0 {
-				articles[len(articles)-1].Description = article.Description
 			}
+			articles = append(articles, *article)
 		}
 	})
 
