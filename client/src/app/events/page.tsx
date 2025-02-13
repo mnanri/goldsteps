@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getEvents, fetchBloombergNews } from "@/utils/api";
+import { getEvents, deleteEvent, fetchBloombergNews } from "@/utils/api";
 import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
@@ -107,6 +107,32 @@ export default function EventsPage() {
         router.push("/events");
     };
 
+    // Delete overdue events at once
+    const deleteOverdueEvents = async () => {
+        const overdueEvents = events.filter(event => countdowns[event.id] === "Overdue");
+    
+        if (overdueEvents.length === 0) {
+            alert("No overdue tasks to delete.");
+            return;
+        }
+    
+        if (!confirm(`Are you sure you want to delete ${overdueEvents.length} overdue tasks?`)) {
+            return;
+        }
+    
+        setLoading(true);
+    
+        try {
+            await Promise.all(overdueEvents.map(event => deleteEvent(event.id)));
+            fetchEvents(); // Re-fetch
+        } catch (error) {
+            console.error("Failed to delete overdue tasks", error);
+            alert("Failed to delete overdue tasks.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
@@ -126,6 +152,13 @@ export default function EventsPage() {
                 className={`toggle-overdue-button ${showOverdue ? "hide" : "show"}`}
             >
                 {showOverdue ? "Hide Overdue" : "Show Overdue"}
+            </button>
+
+            <button 
+                onClick={deleteOverdueEvents} 
+                className="delete-overdue-button"
+            >
+                Delete Overdue
             </button>
 
             <div className="events-container">
@@ -367,6 +400,22 @@ export default function EventsPage() {
 
                 .toggle-overdue-button.hide:hover {
                     background: #666666;
+                }
+
+                .delete-overdue-button {
+                    margin-top: 1rem;
+                    padding: 0.5rem 1rem;
+                    background: transparent;
+                    color: #e72121;
+                    border: 2px solid #e72121;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }
+
+                .delete-overdue-button:hover {
+                    background: #c6000c;
+                    color: white;
                 }
 
                 .news-button {
