@@ -29,3 +29,6 @@ go.work.sum
 
 # Colly cache
 bloom/colly_cache/*
+
+# Debug
+out*
