@@ -288,8 +288,14 @@ func yahooFinanceStockProfile(filename string, stock_list [][]string) {
 	})
 
 	// Write the company name to a CSV file
-	headers := []string{"特色", "連結事業", "従業員数（単独）", "従業員数（連結）", "平均年齢", "平均年収"}
+	headers := []string{"銘柄コード", "特色", "連結事業", "従業員数（単独）", "従業員数（連結）", "平均年齢", "平均年収"}
 	record := make([]string, len(headers))
+
+	c.OnHTML("span.PriceBoardMain__code__2wso", func(e *colly.HTMLElement) {
+		stockCode := e.Text
+		record[0] = stockCode
+		fmt.Println("銘柄コード:", stockCode)
+	})
 
 	// Extract information based on the corresponding table headers
 	c.OnHTML("table.CompanyInformationDetail__table__BIq9", func(e *colly.HTMLElement) {
@@ -317,22 +323,22 @@ func yahooFinanceStockProfile(filename string, stock_list [][]string) {
 
 			switch header {
 			case "特色":
-				record[0] = value
+				record[1] = value
 				fmt.Println("特色:", value)
 			case "連結事業":
-				record[1] = value
+				record[2] = value
 				fmt.Println("連結事業:", value)
 			case "従業員数（単独）":
-				record[2] = value
+				record[3] = value
 				fmt.Println("従業員数（単独）:", value)
 			case "従業員数（連結）":
-				record[3] = value
+				record[4] = value
 				fmt.Println("従業員数（連結）:", value)
 			case "平均年齢":
-				record[4] = value
+				record[5] = value
 				fmt.Println("平均年齢:", value)
 			case "平均年収":
-				record[5] = value
+				record[6] = value
 				fmt.Println("平均年収:", value)
 			}
 		})
@@ -349,7 +355,7 @@ func yahooFinanceStockProfile(filename string, stock_list [][]string) {
 	for _, stock := range stock_list {
 		code := stock[0]
 		name := stock[2]
-		fmt.Printf("Code: %s\tName: %s\n", code, name)
+		fmt.Printf("Loading %s....", name)
 		url := fmt.Sprintf("https://finance.yahoo.co.jp/quote/%s.T/profile", code)
 		c.Visit(url)
 		fmt.Println("--------------------------------------------------")
@@ -662,22 +668,22 @@ func writeJSON(articles []Article, code string) {
 func main() {
 	// Get the top news from Bloomberg
 	// bloomTopNews()
-	bloomTopNewsDescription()
+	// bloomTopNewsDescription()
 
 	// Get the listed stocks and their fundamental information
-	// minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
+	minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
 	// minkabuListedStocks()
 	// minkabuListedStocksFundamental(minkabu_stock_fundamental_filename)
 
 	// Display the data
-	// records := readFromCSV(minkabu_stock_fundamental_filename)
+	records := readFromCSV(minkabu_stock_fundamental_filename)
 	// for _, record := range records {
 	// 	fmt.Printf("Code: %s\tName: %s\tPrice: %s\n", record[0], record[2], record[3])
 	// }
 
 	// Get the stock profile from Yahoo Finance
-	// yahoo_finance_stock_profile_filename := "stock_profile.csv"
-	// yahooFinanceStockProfile(yahoo_finance_stock_profile_filename, records)
+	yahoo_finance_stock_profile_filename := "stock_profile.csv"
+	yahooFinanceStockProfile(yahoo_finance_stock_profile_filename, records)
 
 	// Get the daily stock value
 	// mercari_code := "4385"

@@ -3,6 +3,7 @@ package main
 import (
 	"goldsteps/db"
 	"goldsteps/routes"
+
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +20,7 @@ func main() {
 	}))
 
 	// Init DB
-	db.InitDB()
+	DB := db.InitDB()
 
 	// Root Endpoint
 	e.GET("/hello", func(c echo.Context) error {
@@ -36,7 +37,7 @@ func main() {
 	routes.RegisterEventRoutes(api)
 	routes.RegisterUserRoutes(api)
 	routes.RegisterStockRoutes(api)
-	routes.RegisterBloombergRoutes(api)
+	routes.RegisterBloombergRoutes(api, DB)
 
 	// Awake server
 	e.Logger.Fatal(e.Start(":8080"))

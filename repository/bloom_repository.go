@@ -1,0 +1,40 @@
+package repository
+
+import (
+	"goldsteps/models"
+	"log"
+
+	"gorm.io/gorm"
+)
+
+func SaveNewsArticles(db *gorm.DB, articles []models.NewsArticle) error {
+	for _, article := range articles {
+		// Execude previous saved news
+		var existing models.NewsArticle
+
+		// Check existance
+		err := db.Where("link = ?", article.Link).First(&existing).Error
+
+		if err != nil {
+			// Add new data
+			if err == gorm.ErrRecordNotFound {
+				if saveErr := db.Create(&article).Error; saveErr != nil {
+					log.Println("Failed to save news:", saveErr)
+					return saveErr
+				}
+			} else {
+				// Unpredicted error
+				log.Println("Error checking existing news:", err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Get all saved news
+func GetAllNewsArticles(db *gorm.DB) ([]models.NewsArticle, error) {
+	var articles []models.NewsArticle
+	err := db.Find(&articles).Error
+	return articles, err
+}

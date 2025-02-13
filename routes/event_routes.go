@@ -26,9 +26,9 @@ func RegisterEventRoutes(e *echo.Group) {
 
 	// Get an event
 	e.GET("/events/:id", func(c echo.Context) error {
-		// Debug: Print the request body
+		// DEBUG: Print the request body
 		// fmt.Println("Request Body:", c.Request().Body)
-		fmt.Println("Request Param:", c.Param("id"))
+		// fmt.Println("Request Param:", c.Param("id"))
 
 		id := c.Param("id")
 		var event models.Event

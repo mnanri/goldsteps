@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getEvents, deleteEvent, fetchBloombergNews } from "@/utils/api";
+import { getEvents, deleteEvent, fetchNewsArticle } from "@/utils/api";
 import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
@@ -61,7 +61,7 @@ export default function EventsPage() {
         setNewsLoading(true);
         setNewsError(null);
         try {
-            const data = await fetchBloombergNews();
+            const data = await fetchNewsArticle();
             setNews(data);
         } catch (err) {
             setNewsError("Failed to fetch news");

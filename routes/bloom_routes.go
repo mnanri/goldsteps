@@ -6,18 +6,22 @@ import (
 	"strings"
 	"time"
 
+	"goldsteps/models"
+	"goldsteps/repository"
+
 	"github.com/gocolly/colly/v2"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
-type NewsArticle struct {
-	Title       string `json:"title"`
-	Link        string `json:"link"`
-	Description string `json:"description"`
-}
+// type NewsArticle struct {
+// 	Title       string `json:"title"`
+// 	Link        string `json:"link"`
+// 	Description string `json:"description"`
+// }
 
-func fetchBloombergNews() ([]NewsArticle, error) {
-	var articles []NewsArticle
+func fetchBloombergNews() ([]models.NewsArticle, error) {
+	var articles []models.NewsArticle
 
 	// Colly Instance
 	c := colly.NewCollector(
@@ -39,7 +43,7 @@ func fetchBloombergNews() ([]NewsArticle, error) {
 
 		// Filter out empty titles and only include articles
 		if title != "" && strings.Contains(absoluteURL, "https://www.bloomberg.co.jp/news/articles") {
-			article := &NewsArticle{
+			article := &models.NewsArticle{
 				Title: title,
 				Link:  absoluteURL,
 			}
@@ -61,16 +65,36 @@ func fetchBloombergNews() ([]NewsArticle, error) {
 	return articles, nil
 }
 
-// Handler for fetching Bloomberg news
-func getBloombergNews(c echo.Context) error {
-	articles, err := fetchBloombergNews()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch news"})
+// Handler to Fetch and Save News
+func getBloombergNews(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		articles, err := fetchBloombergNews()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch news"})
+		}
+
+		// Save to Database (only new articles)
+		if err := repository.SaveNewsArticles(db, articles); err != nil {
+			log.Println("Failed to save news:", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save news"})
+		}
+
+		return c.JSON(http.StatusOK, articles)
 	}
-	return c.JSON(http.StatusOK, articles)
 }
 
-// RegisterBloombergRoutes registers routes for fetching Bloomberg news
-func RegisterBloombergRoutes(e *echo.Group) {
-	e.GET("/bloomberg", getBloombergNews)
+func getSavedBloombergNews(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		articles, err := repository.GetAllNewsArticles(db)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve news"})
+		}
+		return c.JSON(http.StatusOK, articles)
+	}
+}
+
+// Register Bloomberg Routes
+func RegisterBloombergRoutes(e *echo.Group, db *gorm.DB) {
+	e.GET("/bloomberg", getBloombergNews(db))
+	e.GET("/bloomberg/saved", getSavedBloombergNews(db))
 }

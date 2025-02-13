@@ -11,7 +11,7 @@ import (
 var DB *gorm.DB
 
 // Init DB
-func InitDB() {
+func InitDB() *gorm.DB {
 	var err error
 	DB, err = gorm.Open(sqlite.Open("steps.db"), &gorm.Config{})
 	if err != nil {
@@ -19,7 +19,13 @@ func InitDB() {
 	}
 
 	// Auto migration of the tables
-	if err := DB.AutoMigrate(&models.User{}, &models.Event{}); err != nil {
+	if err := DB.AutoMigrate(
+		&models.User{},
+		&models.Event{},
+		&models.NewsArticle{},
+	); err != nil {
 		log.Fatal("Migration failed:", err)
 	}
+
+	return DB
 }

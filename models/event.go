@@ -27,11 +27,11 @@ const (
 type Event struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	UserID      uint      `json:"user_id"`
-	Title       string    `json:"title"`
+	Title       string    `json:"title" gorm:"not null"`
 	Description string    `json:"description"`
 	StartTime   time.Time `json:"start_time"`
 	EndTime     time.Time `json:"end_time"`
-	Deadline    time.Time `json:"deadline"`
+	Deadline    time.Time `json:"deadline" gorm:"not null"`
 	Status      Status    `json:"status" gorm:"type:text;default:'To Do'"`
 	Tag         Tag       `json:"tag" gorm:"type:text;default:'Medium'"`
 	CreatedAt   time.Time `json:"created_at"`
