@@ -23,6 +23,8 @@ func InitDB() *gorm.DB {
 		&models.User{},
 		&models.Event{},
 		&models.NewsArticle{},
+		&models.Stock{},
+		&models.StockDetail{},
 	); err != nil {
 		log.Fatal("Migration failed:", err)
 	}
