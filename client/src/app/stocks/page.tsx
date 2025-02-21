@@ -26,6 +26,8 @@ export default function StocksPage() {
             const stockData = await fetchStockData(stockCode);
             const stockNews = await fetchStockNews(stockCode); // Fetch news data
 
+            console.log(stockData) // Debug
+
             setData(stockData);
             setNews(stockNews);
 
@@ -98,15 +100,15 @@ export default function StocksPage() {
             {/* Stock data */}
             {data && (
                 <div className="border rounded p-4 mt-4">
-                    <h2 className="text-xl font-bold">銘柄コード: {data.code}</h2>
-                    <p>株価: {data.stock_price} 円</p>
-                    <p>前日終値: {data.prev_close} 円</p>
-                    <p>変動額: {data.price_change}</p>
-                    <p>STOP高: {data.stop_high ? "あり" : "なし"}</p>
-                    <p>時価総額: {data.market_cap} 円</p>
-                    <p>発行済株数: {data.issued_shares} 株</p>
-                    <p>平均PER: {data.average_per}</p>
-                    <p>平均PBR: {data.average_pbr}</p>
+                    <h2 className="text-xl font-bold">銘柄コード: {data.stockData.code} - {data.stock.company_name}</h2>
+                    <p>株価: &yen; {data.stockData.stock_price} </p>
+                    <p>前日終値: &yen; {data.stockData.prev_close}</p>
+                    <p>変動額: {data.stockData.price_change}</p>
+                    <p>STOP高: {data.stockData.stop_high ? "あり" : "なし"}</p>
+                    <p>時価総額: &yen; {data.stockData.market_cap} </p>
+                    <p>発行済株数: {data.stockData.issued_shares} 株</p>
+                    <p>平均PER: {data.stockData.average_per}</p>
+                    <p>平均PBR: {data.stockData.average_pbr}</p>
                 </div>
             )}
 
@@ -160,6 +162,36 @@ export default function StocksPage() {
                             </li>
                         ))}
                     </ul>
+                </div>
+            )}
+
+            {/* Company Detail */}
+            {data && data.stock && (
+                <div className="border rounded p-4 mt-4">
+                    <h2 className="text-xl font-bold">企業情報</h2>
+                    <p><strong>企業名:</strong> {data.stock.company_name}</p>
+                    <p><strong>英語名:</strong> {data.stock.english_company_name}</p>
+                    <p><strong>市場:</strong> {data.stock.listing_market}</p>
+                    <p><strong>業種:</strong> {data.stock.industry}</p>
+                    <p><strong>所在地:</strong> {data.stock.address}</p>
+                    <p><strong>電話番号:</strong> {data.stock.phone}</p>
+                    <p><strong>代表者:</strong> {data.stock.representative}</p>
+                    <p><strong>決算月:</strong> {data.stock.settlement_month}月</p>
+                    <p><strong>資本金:</strong> &yen; {data.stock.capital.toLocaleString()}</p>
+                    <p><strong>上場日:</strong> {data.stock.listing_date}</p>
+                    <p><strong>単位株数:</strong> {data.stock.unit_shares} 株</p>
+                </div>
+            )}
+
+            {data && (
+                <div className="border rounded p-4 mt-4">
+                    <h2 className="text-xl font-bold">追加情報</h2>
+                    <p><strong>特徴:</strong> {data.stockDetail.feature || "情報なし"}</p>
+                    <p><strong>事業内容:</strong> {data.stockDetail.business || "情報なし"}</p>
+                    <p><strong>従業員数 (単体):</strong> {data.stockDetail.employees_solo ? data.stockDetail.employees_solo.toLocaleString() : "情報なし"} 人</p>
+                    <p><strong>従業員数 (連結):</strong> {data.stockDetail.employees_consolidated ? data.stockDetail.employees_consolidated.toLocaleString() : "情報なし"} 人</p>
+                    <p><strong>平均年齢:</strong> {data.stockDetail.average_age ? data.stockDetail.average_age.toFixed(1) + " 歳" : "情報なし"}</p>
+                    <p><strong>平均年収:</strong> {data.stockDetail.average_salary ? `¥ ${data.stockDetail.average_salary.toLocaleString()}` : "情報なし"}</p>
                 </div>
             )}
         </div>

@@ -28,7 +28,7 @@ func ImportStocks(filename string) error {
 		stockCode, _ := strconv.Atoi(row[0])
 		settlementMonth, _ := strconv.Atoi(strings.ReplaceAll(row[8], "月", ""))
 		capital, _ := strconv.Atoi(strings.ReplaceAll(strings.ReplaceAll(row[9], "千円", "000"), ",", ""))
-		listingDate := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(row[13], "年", "/"), "月", "/"), "日", "/")
+		listingDate := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(row[13], "年", "/"), "月", "/"), "日", "")
 		unitShares, _ := strconv.Atoi(strings.ReplaceAll(row[14], "株", ""))
 		stockExist := true
 		if row[3] == "---" {
@@ -83,10 +83,10 @@ func ImportStockDetails(filename string) error {
 			StockCode:             stockCode,
 			Feature:               row[1],
 			Business:              row[2],
-			EmployeesSolo:         &employeesSolo,
-			EmployeesConsolidated: &employeesConsolidated,
-			AverageAge:            &averageAge,
-			AverageSalary:         &averageSalary,
+			EmployeesSolo:         employeesSolo,
+			EmployeesConsolidated: employeesConsolidated,
+			AverageAge:            averageAge,
+			AverageSalary:         averageSalary,
 		}
 
 		db.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&stockDetail)

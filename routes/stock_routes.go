@@ -2,6 +2,8 @@ package routes
 
 import (
 	"fmt"
+	"goldsteps/db"
+	"goldsteps/models"
 	"log"
 	"math"
 	"net/http"
@@ -151,12 +153,31 @@ func getStockInfo(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Stock code is required"})
 	}
 
+	var stock models.Stock
+	var stockDetail models.StockDetail
+	if err := db.DB.Where("stock_code = ?", code).First(&stock).Error; err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Stock not found"})
+	}
+
+	if err := db.DB.Where("stock_code = ?", code).First(&stockDetail).Error; err != nil {
+		log.Println("The stock might be vernished from market?, CODE: ", code, err)
+	}
+
 	stockData, err := stockDailyValue(code)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch stock data"})
 	}
 
-	return c.JSON(http.StatusOK, stockData)
+	response := map[string]interface{}{
+		"stock":       stock,
+		"stockDetail": stockDetail,
+		"stockData":   stockData,
+	}
+
+	// DEBUG
+	// log.Println(response)
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // Judge if the date is within one year
