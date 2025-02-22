@@ -7,7 +7,10 @@ toolchain go1.23.6
 require (
 	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/gocolly/colly/v2 v2.1.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.3
+	golang.org/x/crypto v0.32.0
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
@@ -31,7 +34,6 @@ require (
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
