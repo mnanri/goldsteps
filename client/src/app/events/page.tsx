@@ -10,7 +10,7 @@ const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Done"];
 const tagOptions = ["Urgent", "Medium", "Low"];
 
 const statusColors: Record<string, string> = {
-    "To Do": "#00008B",
+    "To Do": "#101010",
     "In Progress": "#333333",
     "Pending": "#666666",
     "In Review": "#999999",
@@ -148,7 +148,7 @@ export default function EventsPage() {
 
     return (
         <div>
-            <h1>Events</h1>
+            <h1><></>Dashboard</h1>
             <button
                 onClick={() => router.push("/events?modal=create")}
                 className="create-button"
@@ -259,7 +259,8 @@ export default function EventsPage() {
                     </div>
                 ))}
             </div>
-
+            
+            <hr />
             {/* Bloomberg News */}
             <button onClick={fetchNews} className="news-button">View Headline</button>
 
@@ -410,12 +411,13 @@ export default function EventsPage() {
 
                 /* Hide Overdue */
                 .toggle-overdue-button.hide {
-                    background: #808080;
-                    color: white;
+                    border: 2px solid #666666;
+                    color: #333333;
                 }
 
                 .toggle-overdue-button.hide:hover {
                     background: #666666;
+                    color: white;
                 }
 
                 .delete-overdue-button {
@@ -512,7 +514,7 @@ export default function EventsPage() {
                 .milestone-button {
                     margin-top: 0.5rem;
                     padding: 0.1rem 1rem;
-                    background: #28a745;
+                    background: #00008B;
                     color: white;
                     border: none;
                     border-radius: 4px;
@@ -520,7 +522,7 @@ export default function EventsPage() {
                     transition: background 0.3s;
                 }
                 .milestone-button:hover {
-                    background: #218838;
+                    background: #55beee;
                 }
             `}</style>
         </div>
