@@ -23,6 +23,7 @@ func InitDB() *gorm.DB {
 		&models.User{},
 		&models.Event{},
 		&models.NewsArticle{},
+		&models.Milestone{},
 		&models.Stock{},
 		&models.StockDetail{},
 	); err != nil {

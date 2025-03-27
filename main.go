@@ -38,6 +38,7 @@ func main() {
 	routes.RegisterUserRoutes(api)
 	routes.RegisterStockRoutes(api)
 	routes.RegisterBloombergRoutes(api, DB)
+	routes.RegisterMilestoneRoutes(api)
 	routes.RegisterImportStockMasterDataFromCSV(api)
 
 	// Awake server
