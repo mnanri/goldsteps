@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"goldsteps/db"
 	"goldsteps/models"
+	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -17,7 +19,6 @@ import (
 var jwtSecret = []byte(getJWTSecret())
 
 func getJWTSecret() string {
-	// Read .env
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Warning: No .env file found, using environment variables or default value.")
@@ -26,25 +27,23 @@ func getJWTSecret() string {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		fmt.Println("Warning: JWT_SECRET is not set, using default secret.")
-		return "default_secret_key" // default for DEBUG
+		return "default_secret_key"
 	}
 	return secret
 }
 
-func RegisterUserRoutes(e *echo.Group) {
-	// Get a user
-	e.GET("/users/:id", func(c echo.Context) error {
-		id := c.Param("id")
-		var user models.User
-		result := db.DB.First(&user, id)
-		if result.Error != nil {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-		}
-		return c.JSON(http.StatusOK, user)
-	})
+func getUserIDFromToken(c echo.Context) (uint, error) {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("invalid token")
+	}
+	return uint(userIDFloat), nil
+}
 
-	// Register (Create) a user
-	e.POST("/users", func(c echo.Context) error {
+func RegisterUserRoutes(e *echo.Group) {
+	e.POST("/user/create", func(c echo.Context) error {
 		user := new(models.User)
 		if err := c.Bind(user); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
@@ -56,37 +55,45 @@ func RegisterUserRoutes(e *echo.Group) {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 
-		result := db.DB.Create(user)
-		if result.Error != nil {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password"})
+		}
+		user.Password = string(hashedPassword)
+
+		if err := db.DB.Create(user).Error; err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user"})
 		}
 		return c.JSON(http.StatusCreated, map[string]string{"message": "User created successfully"})
 	})
 
-	// Login
-	e.POST("/login", func(c echo.Context) error {
-		req := struct {
+	e.POST("/auth/login", func(c echo.Context) error {
+		var req struct {
 			Alias    string `json:"alias"`
 			Password string `json:"password"`
-		}{}
+		}
 		if err := c.Bind(&req); err != nil {
+			// log.Println(err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 		}
 
 		var user models.User
 		if err := db.DB.Where("alias = ?", req.Alias).First(&user).Error; err != nil {
+			// log.Println(err)
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid alias or password"})
 		}
 
-		// Compare hashed password
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		log.Println("Stored Hash:", user.Password)
+		log.Println("Input Password:", req.Password)
+
+		if err := bcrypt.CompareHashAndPassword([]byte(strings.TrimSpace(user.Password)), []byte(strings.TrimSpace(req.Password))); err != nil {
+			log.Println(err)
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid alias or password"})
 		}
 
-		// Generate JWT token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"user_id": user.ID,
-			"exp":     time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+			"exp":     time.Now().Add(time.Hour * 24).Unix(),
 		})
 		tokenString, err := token.SignedString(jwtSecret)
 		if err != nil {
@@ -96,12 +103,32 @@ func RegisterUserRoutes(e *echo.Group) {
 		return c.JSON(http.StatusOK, map[string]string{"token": tokenString})
 	})
 
-	// Update a user (requires authentication)
-	e.PUT("/users/:id", func(c echo.Context) error {
-		id := c.Param("id")
-		var user models.User
+	e.GET("/auth/ref", func(c echo.Context) error {
+		userID, err := getUserIDFromToken(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
+		}
 
-		if err := db.DB.First(&user, id).Error; err != nil {
+		var user models.User
+		if err := db.DB.First(&user, userID).Error; err != nil {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+		}
+
+		return c.JSON(http.StatusOK, user)
+	})
+
+	e.POST("/auth/logout", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"message": "Logged out successfully"})
+	})
+
+	e.PUT("/auth/conv", func(c echo.Context) error {
+		userID, err := getUserIDFromToken(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
+		}
+
+		var user models.User
+		if err := db.DB.First(&user, userID).Error; err != nil {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
 		}
 
@@ -121,12 +148,14 @@ func RegisterUserRoutes(e *echo.Group) {
 		return c.JSON(http.StatusOK, user)
 	})
 
-	// Delete a user
-	e.DELETE("/users/:id", func(c echo.Context) error {
-		id := c.Param("id")
-		var user models.User
+	e.DELETE("/auth/rm", func(c echo.Context) error {
+		userID, err := getUserIDFromToken(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
+		}
 
-		if err := db.DB.First(&user, id).Error; err != nil {
+		var user models.User
+		if err := db.DB.First(&user, userID).Error; err != nil {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
 		}
 
@@ -136,4 +165,5 @@ func RegisterUserRoutes(e *echo.Group) {
 
 		return c.JSON(http.StatusOK, map[string]string{"message": "User deleted successfully"})
 	})
+
 }

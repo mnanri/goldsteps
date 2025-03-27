@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getEvents, deleteEvent, fetchNewsArticle } from "@/utils/api";
+import { getCurrentUser, logout } from "@/utils/auth";
 import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
@@ -24,11 +25,15 @@ const tagColors: Record<string, string> = {
 };
 
 export default function EventsPage() {
+    // For events
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [countdowns, setCountdowns] = useState<Record<string, string>>({});
     const [showOverdue, setShowOverdue] = useState(false);
+
+    // For user authentication
+    const [user, setUser] = useState<{ name: string } | null>(null);
 
     // For Bloomberg news
     const [news, setNews] = useState<any[]>([]);
@@ -56,19 +61,6 @@ export default function EventsPage() {
     useEffect(() => {
         fetchEvents();
     }, [fetchEvents]);
-
-    const fetchNews = useCallback(async () => {
-        setNewsLoading(true);
-        setNewsError(null);
-        try {
-            const data = await fetchNewsArticle();
-            setNews(data);
-        } catch (err) {
-            setNewsError("Failed to fetch news");
-        } finally {
-            setNewsLoading(false);
-        }
-    }, []);
 
     // Calculate countdown
     const calculateCountdown = (deadline: string) => {
@@ -133,12 +125,56 @@ export default function EventsPage() {
         }
     };
 
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userData = await getCurrentUser();
+                setUser(userData);
+            } catch (err) {
+                console.error("Failed to fetch user", err);
+                router.push("/auth/login"); // Redirect to login page
+            }
+        };
+
+        fetchUser();
+    }, [router]);
+
+    const handleLogout = () => {
+        logout(); // Logout function
+        router.push("/login");
+    };
+
+    // Crawl Bloomberg news
+    const fetchNews = useCallback(async () => {
+        setNewsLoading(true);
+        setNewsError(null);
+        try {
+            const data = await fetchNewsArticle();
+            setNews(data);
+        } catch (err) {
+            setNewsError("Failed to fetch news");
+        } finally {
+            setNewsLoading(false);
+        }
+    }, []);
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
         <div>
-            <h1>Events</h1>
+            <header className="header">
+                {user ? (
+                    <div className="user-info">
+                        <span className="user-symbol">🔵 {user.name}</span>
+                        <button onClick={handleLogout} className="logout-button">Logout</button>
+                    </div>
+                ) : (
+                    <p>Loading user...</p>
+                )}
+            </header>
+
+            {/* <h1>Events</h1> */}
             <button
                 onClick={() => router.push("/events?modal=create")}
                 className="create-button"
@@ -416,6 +452,40 @@ export default function EventsPage() {
                 .delete-overdue-button:hover {
                     background: #c6000c;
                     color: white;
+                }
+
+                .header {
+                    display: flex;
+                    justify-content: flex-end;
+                    padding: 1rem;
+                    background: #f1f1f1;
+                    border-bottom: 1px solid #ddd;
+                }
+
+                .user-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                }
+
+                .user-symbol {
+                    font-weight: bold;
+                    font-size: 1rem;
+                    color: #333;
+                }
+
+                .logout-button {
+                    padding: 0.5rem 1rem;
+                    background: #e72121;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }
+
+                .logout-button:hover {
+                    background: #c6000c;
                 }
 
                 .news-button {

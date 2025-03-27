@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useRouter } from "next/router";
 
 // Axios Instance
 const apiClient = axios.create({
@@ -6,20 +7,50 @@ const apiClient = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
-    // timeout: 5000,
 });
 
-// Fetch Data
-export const fetchData = async (): Promise<{ message: string }> => {
-    try {
-        const response = await apiClient.get("/data");
-        return response.data;
-    } catch (error) {
-        console.error("API Error:", error);
-        throw new Error("Failed to fetch data");
+// Add Auth Token to header
+apiClient.interceptors.request.use((config) => {
+    if (typeof window !== "undefined") {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
     }
-};
+    return config;
+});
 
+// Response error handling 
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // if code == 401, then redirect to login pages
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("token");
+                // window.location.href = "/auth/login";
+                const router = useRouter();
+                router.push("/auth/login");
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
+export default apiClient;
+
+// Fetch Data　(Debug)
+// export const fetchData = async (): Promise<{ message: string }> => {
+//     try {
+//         const response = await apiClient.get("/data");
+//         return response.data;
+//     } catch (error) {
+//         console.error("API Error:", error);
+//         throw new Error("Failed to fetch data");
+//     }
+// };
+
+// Events API
 // Get Events
 export const getEvents = async () => {
     const response = await apiClient.get("/events");
@@ -50,7 +81,7 @@ export const deleteEvent = async (id: string) => {
     return response.data;
 };
 
-// Stocks...
+// Stocks API
 // Fetch Stock Data
 export const fetchStockData = async (code: string) => {
     try {
@@ -68,6 +99,7 @@ export const fetchStockNews = async (code: string) => {
     return response.data;
 };
 
+// News API
 // Fetch Bloomberg News
 export const fetchNewsArticle = async () => {
     try {

@@ -3,8 +3,8 @@ package models
 import (
 	"errors"
 	"math/rand"
-	"regexp"
 	"time"
+	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -14,17 +14,36 @@ import (
 type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Alias     string    `json:"alias"`
-	Password  string    `json:"-"` // Password is private
+	Password  string    `json:"password"` // Password is private
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Validate password (more than 8 characters by digits and alphabet)
 func ValidatePassword(password string) error {
-	re := regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$`)
-	if !re.MatchString(password) {
-		return errors.New("password must be at least 8 characters long and contain both letters and numbers")
+	if len(password) < 8 {
+		return errors.New("password must be at least 8 characters long")
 	}
+
+	hasLetter := false
+	hasDigit := false
+
+	for _, char := range password {
+		if unicode.IsLetter(char) {
+			hasLetter = true
+		}
+		if unicode.IsDigit(char) {
+			hasDigit = true
+		}
+	}
+
+	if !hasLetter {
+		return errors.New("password must contain at least one letter")
+	}
+	if !hasDigit {
+		return errors.New("password must contain at least one number")
+	}
+
 	return nil
 }
 
