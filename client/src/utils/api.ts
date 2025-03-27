@@ -84,3 +84,22 @@ export const searchNewsArticles = async (query: string) => {
     const response = await apiClient.get(`/bloomberg/search?q=${encodeURIComponent(query)}`);
     return response.data;
 };
+
+// Milestone Functions
+// Add Milestone
+export const addMilestone = async (article: any) => {
+    const response = await apiClient.post("/milestones", article);
+    return response.data;
+};
+
+// Fetch Milestones
+export const fetchMilestone = async () => {
+    const response = await apiClient.get("/milestones");
+    return response.data;
+};
+
+// Remove Milestone
+export const removeMilestone = async (id: string) => {
+    const response = await apiClient.delete(`/milestones/${id}`);
+    return response.data;
+};

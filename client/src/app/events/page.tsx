@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getEvents, deleteEvent, fetchNewsArticle } from "@/utils/api";
+import { getEvents, deleteEvent, fetchNewsArticle, addMilestone } from "@/utils/api";
 import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
@@ -69,6 +69,16 @@ export default function EventsPage() {
             setNewsLoading(false);
         }
     }, []);
+
+    const handleAddToMilestone = async (article: { title: string; link: string }) => {
+        try {
+            await addMilestone({ title: article.title, link: article.link });
+            alert("Added to Milestone!");
+        } catch (error) {
+            console.error("Failed to add milestone", error);
+            alert("Failed to add milestone.");
+        }
+    };
 
     // Calculate countdown
     const calculateCountdown = (deadline: string) => {
@@ -271,6 +281,12 @@ export default function EventsPage() {
                                 </a>
                                 {/* <p className="news-description">{article.description}</p> */}
                                 <p>{article.description}</p>
+                                <button
+                                    className="milestone-button"
+                                    onClick={() => handleAddToMilestone(article)}
+                                >
+                                    Add to Milestone
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -492,6 +508,19 @@ export default function EventsPage() {
                 .news-card:hover .news-description {
                     max-height: 500px;
                     opacity: 1;
+                }
+                .milestone-button {
+                    margin-top: 0.5rem;
+                    padding: 0.1rem 1rem;
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }
+                .milestone-button:hover {
+                    background: #218838;
                 }
             `}</style>
         </div>
