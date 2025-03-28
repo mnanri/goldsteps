@@ -93,7 +93,7 @@ export const addMilestone = async (article: any) => {
 };
 
 // Fetch Milestones
-export const fetchMilestone = async () => {
+export const getMilestones = async () => {
     const response = await apiClient.get("/milestones");
     return response.data;
 };

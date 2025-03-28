@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getEvents, deleteEvent, fetchNewsArticle, addMilestone } from "@/utils/api";
+import { getEvents, deleteEvent, fetchNewsArticle, addMilestone, getMilestones } from "@/utils/api";
 import { useSearchParams, useRouter } from "next/navigation";
 import CreateEventModal from "./create/page";
 import EventDetailModal from "./[id]/page";
+import MilestoneModal from "../milestones/MilestoneModal";
 
 const statusOptions = ["To Do", "In Progress", "Pending", "In Review", "Done"];
 const tagOptions = ["Urgent", "Medium", "Low"];
@@ -29,6 +30,7 @@ export default function EventsPage() {
     const [error, setError] = useState<string | null>(null);
     const [countdowns, setCountdowns] = useState<Record<string, string>>({});
     const [showOverdue, setShowOverdue] = useState(false);
+    const [milestones, setMilestones] = useState<any[]>([]);
 
     // For Bloomberg news
     const [news, setNews] = useState<any[]>([]);
@@ -79,6 +81,21 @@ export default function EventsPage() {
             alert("Failed to add milestone.");
         }
     };
+
+    useEffect(() => {
+        const fetchMilestones = async () => {
+            setLoading(true);
+            try {
+                const data = await getMilestones();
+                setMilestones(data);
+            } catch (err) {
+                setError("Failed to fetch milestones");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMilestones();
+    }, []);
 
     // Calculate countdown
     const calculateCountdown = (deadline: string) => {
@@ -148,7 +165,10 @@ export default function EventsPage() {
 
     return (
         <div>
-            <h1><></>Dashboard</h1>
+            <h1 className="dashboard-title">
+                🚀 Dashboard
+            </h1>
+
             <button
                 onClick={() => router.push("/events?modal=create")}
                 className="create-button"
@@ -261,8 +281,15 @@ export default function EventsPage() {
             </div>
             
             <hr />
+            <div className="link-group">
+                <a href="/stocks" target="_blank" rel="noopener noreferrer">SearchStocks</a>
+                <a href="/arts" target="_blank" rel="noopener noreferrer">SearchArts</a>
+            </div>
             {/* Bloomberg News */}
             <button onClick={fetchNews} className="news-button">View Headline</button>
+            <button onClick={() => router.push("/events?modal=milestone")} className="show-milestone-button">
+                Show Milestones
+            </button>
 
             {newsLoading && <p>News Loading...</p>}
             {newsError && <p style={{ color: "red" }}>{newsError}</p>}
@@ -298,10 +325,37 @@ export default function EventsPage() {
             {modal === "detail" && eventId && (
                 <EventDetailModal /* id={eventId} */ onClose={handleModalClose} />
             )}
+            {modal === "milestone" && <MilestoneModal milestones={milestones} onClose={handleModalClose} />}
+
 
             <style jsx>{`
+                .dashboard-title {
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    background: linear-gradient(90deg, #333333, #749ac7);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    text-shadow: 2px 2px 10px rgba(0, 115, 230, 0.5);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    opacity: 0;
+                    animation: fadeIn 1s ease-in-out forwards;
+                }
+
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
                 .create-button {
-                    margin-bottom: 1rem;
+                    margin-bottom: 0rem;
                     padding: 0.5rem 1rem;
                     background: #55beee;
                     color: white;
@@ -511,6 +565,7 @@ export default function EventsPage() {
                     max-height: 500px;
                     opacity: 1;
                 }
+                
                 .milestone-button {
                     margin-top: 0.5rem;
                     padding: 0.1rem 1rem;
@@ -521,8 +576,39 @@ export default function EventsPage() {
                     cursor: pointer;
                     transition: background 0.3s;
                 }
+                
                 .milestone-button:hover {
                     background: #55beee;
+                }
+
+                .show-milestone-button {
+                    margin-top: 1rem;
+                    padding: 0.5rem 1rem;
+                    background: transparent;
+                    color: #00008B;
+                    border: 2px solid #00008B;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }
+
+                .show-milestone-button:hover {
+                    background: #00008B;
+                    color: white;
+                }
+
+                .link-group {
+                    display: flex;
+                    gap: 16px;
+                    margin-top: 1rem;
+                }
+                .link-group a {
+                    color: #666666;
+                    font-weight: bold;
+                    text-decoration: none;
+                }
+                .link-group a:hover {
+                    text-decoration: underline;
                 }
             `}</style>
         </div>
