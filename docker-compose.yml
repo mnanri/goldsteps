@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./server/steps.db:/app/data/steps.db
+      - ./server/stock_master_data:/app/stock_master_data
     ports:
       - "8080:8080"
     env_file:

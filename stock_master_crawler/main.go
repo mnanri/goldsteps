@@ -671,15 +671,15 @@ func main() {
 	// bloomTopNewsDescription()
 
 	// Get the listed stocks and their fundamental information
-	minkabu_stock_fundamental_filename := "stock_fundamental_202502.csv"
-	// minkabuListedStocks()
-	// minkabuListedStocksFundamental(minkabu_stock_fundamental_filename)
+	minkabu_stock_fundamental_filename := "stock_fundamental.csv"
+	minkabuListedStocks()
+	minkabuListedStocksFundamental(minkabu_stock_fundamental_filename)
 
 	// Display the data
 	records := readFromCSV(minkabu_stock_fundamental_filename)
-	// for _, record := range records {
-	// 	fmt.Printf("Code: %s\tName: %s\tPrice: %s\n", record[0], record[2], record[3])
-	// }
+	for _, record := range records {
+		fmt.Printf("Code: %s\tName: %s\tPrice: %s\n", record[0], record[2], record[3])
+	}
 
 	// Get the stock profile from Yahoo Finance
 	yahoo_finance_stock_profile_filename := "stock_profile.csv"

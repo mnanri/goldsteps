@@ -25,6 +25,7 @@ WORKDIR /app
 RUN apk add --no-cache sqlite-libs
 
 COPY --from=builder /app/main .
+COPY stock_master_data ./stock_master_data
 
 EXPOSE 8080
 
