@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"goldsteps/models"
-	"goldsteps/repository"
+	"server/models"
+	"server/repository"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/labstack/echo/v4"

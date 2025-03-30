@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Go Modules
+/vendor/
+
+# IDE / Editor files
+*.swp
+.vscode/
+.idea/
+
+# Build artifacts
+/bin/
+/tmp/
+*.out
+*.exe
+*.log
+
+# SQLite database
+steps.db

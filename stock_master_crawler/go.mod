@@ -1,4 +1,4 @@
-module bloom
+module stock_master_crawler
 
 go 1.22.4
 

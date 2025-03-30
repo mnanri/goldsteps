@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"goldsteps/models"
 	"log"
+	"server/models"
 
 	"gorm.io/gorm"
 )

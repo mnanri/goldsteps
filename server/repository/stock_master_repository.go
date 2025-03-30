@@ -2,9 +2,9 @@ package repository
 
 import (
 	"encoding/csv"
-	"goldsteps/db"
-	"goldsteps/models"
 	"os"
+	"server/db"
+	"server/models"
 	"strconv"
 	"strings"
 

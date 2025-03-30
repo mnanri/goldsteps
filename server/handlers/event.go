@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"goldsteps/models"
-	"goldsteps/repository"
 	"net/http"
+	"server/models"
+	"server/repository"
 
 	"github.com/labstack/echo/v4"
 )

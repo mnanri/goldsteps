@@ -1,8 +1,8 @@
 package main
 
 import (
-	"goldsteps/db"
-	"goldsteps/routes"
+	"server/db"
+	"server/routes"
 
 	"net/http"
 

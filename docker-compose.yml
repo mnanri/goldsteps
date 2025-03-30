@@ -1,0 +1,25 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    volumes:
+      - ./server/steps.db:/app/data/steps.db
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./server/.env
+
+  # client:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - ./client/.env.local
+  #   depends_on:
+  #     - server
+
+volumes:
+  steps_db:

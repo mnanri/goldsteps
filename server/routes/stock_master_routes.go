@@ -1,14 +1,14 @@
 package routes
 
 import (
-	"goldsteps/repository"
 	"net/http"
+	"server/repository"
 
 	"github.com/labstack/echo/v4"
 )
 
 const stockfile = "stock_master_data/stock_fundamental_202502.csv"
-const stockDetailfile = "stock_master_data/stock_profile_202502.csv"
+const stockDetailfile = "stock_/stock_profile_202502.csv"
 
 func importStockMasterDataFromCSV(c echo.Context) error {
 

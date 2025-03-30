@@ -2,11 +2,11 @@ package routes
 
 import (
 	"fmt"
-	"goldsteps/db"
-	"goldsteps/models"
 	"log"
 	"math"
 	"net/http"
+	"server/db"
+	"server/models"
 	"strconv"
 	"strings"
 	"time"
@@ -43,7 +43,7 @@ func stockDailyValue(code string) (StockData, error) {
 
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*minkabu.jp",
-		Delay:       2 * time.Second,
+		Delay:       1 * time.Second,
 		RandomDelay: 1 * time.Second,
 	})
 
@@ -241,7 +241,7 @@ func stockNews(code string) ([]Article, error) {
 
 		c.Limit(&colly.LimitRule{
 			DomainGlob:  "*minkabu.jp",
-			Delay:       2 * time.Second,
+			Delay:       1 * time.Second,
 			RandomDelay: 1 * time.Second,
 		})
 

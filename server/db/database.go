@@ -1,8 +1,8 @@
 package db
 
 import (
-	"goldsteps/models"
 	"log"
+	"server/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

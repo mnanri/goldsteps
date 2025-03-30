@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"goldsteps/handlers"
+	"server/handlers"
 
 	"github.com/labstack/echo/v4"
 )

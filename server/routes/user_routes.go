@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"goldsteps/db"
-	"goldsteps/models"
 	"net/http"
+	"server/db"
+	"server/models"
 
 	"github.com/labstack/echo/v4"
 )

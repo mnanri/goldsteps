@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"goldsteps/db"
-	"goldsteps/models"
+	"server/db"
+	"server/models"
 )
 
 func GetAllMilestones() ([]models.Milestone, error) {
