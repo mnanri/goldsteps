@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const stockfile = "bloom/stock_fundamental_202502.csv"
-const stockDetailfile = "bloom/stock_profile_202502.csv"
+const stockfile = "stock_master_data/stock_fundamental_202502.csv"
+const stockDetailfile = "stock_master_data/stock_profile_202502.csv"
 
 func importStockMasterDataFromCSV(c echo.Context) error {
 

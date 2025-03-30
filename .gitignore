@@ -28,7 +28,7 @@ go.work.sum
 *.db
 
 # Colly cache
-bloom/colly_cache/*
+stock_master_crawler/colly_cache/*
 
 # Debug
 out*
