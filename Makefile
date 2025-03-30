@@ -2,6 +2,13 @@
 
 PROJECT_NAME=goldsteps
 
+.PHONY: local
+
+local:
+	(cd server && go run main.go) & \
+	(cd client && npm run dev) & \
+	wait
+
 up:
 	docker-compose up -d
 
