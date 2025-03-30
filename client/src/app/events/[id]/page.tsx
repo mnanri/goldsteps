@@ -80,7 +80,7 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         handleUpdate();
                     }}
                 >
-                    {/* タイトル */}
+
                     <label>
                         Title:
                         <input
@@ -92,7 +92,6 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         />
                     </label>
 
-                    {/* 説明 */}
                     <label>
                         Description:
                         <textarea
@@ -105,7 +104,6 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         />
                     </label>
 
-                    {/* 開始時間 */}
                     <label>
                         Start Time:
                         <input
@@ -119,7 +117,6 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         />
                     </label>
 
-                    {/* 終了時間 */}
                     <label>
                         End Time:
                         <input
@@ -133,7 +130,6 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         />
                     </label>
 
-                    {/* 締切 */}
                     <label>
                         Deadline:
                         <input
@@ -147,7 +143,6 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         />
                     </label>
 
-                    {/* ステータス */}
                     <label>
                         Status:
                         <select
@@ -164,7 +159,6 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         </select>
                     </label>
 
-                    {/* タグ */}
                     <label>
                         Tag:
                         <select
@@ -181,10 +175,8 @@ export default function EventDetailModal({ onClose }: { onClose: () => void }) {
                         </select>
                     </label>
 
-                    {/* 更新ボタン */}
                     <button type="submit">Update</button>
 
-                    {/* 削除ボタン */}
                     {/* <button type="button" onClick={handleDelete} style={{
                         color: "#E72121",
                         border: "1px solid #E72121",

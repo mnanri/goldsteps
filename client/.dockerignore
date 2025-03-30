@@ -1,0 +1,19 @@
+# Git
+.git
+.gitignore
+
+# Node.js dependencies
+/node_modules/
+
+# Build artifacts
+.next/
+out/
+dist/
+
+# IDE / Editor files
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log
+yarn-error.log

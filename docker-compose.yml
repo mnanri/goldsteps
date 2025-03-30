@@ -10,16 +10,20 @@ services:
     env_file:
       - ./server/.env
 
-  # client:
-  #   build:
-  #     context: ./client
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - ./client/.env.local
-  #   depends_on:
-  #     - server
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./client/.env.local
+    volumes:
+    - ./client:/app
+    - /app/node_modules
+    # command: ["npm", "run", "dev"]
+    depends_on:
+      - server
 
 volumes:
   steps_db:
