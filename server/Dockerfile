@@ -23,6 +23,7 @@ WORKDIR /app
 # This is necessary for the SQLite database to work properly.
 # The SQLite development libraries are not needed in the final image.
 RUN apk add --no-cache sqlite-libs
+RUN apk add --no-cache sqlite
 
 COPY --from=builder /app/main .
 COPY stock_master_data ./stock_master_data
