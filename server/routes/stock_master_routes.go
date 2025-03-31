@@ -24,8 +24,8 @@ func init() {
 	}
 
 	// Construct the file paths
-	stockfile = filepath.Join(wd, "stock_master_data", "stock_fundamental_202502.csv")
-	stockDetailfile = filepath.Join(wd, "stock_master_data", "stock_profile_202502.csv")
+	stockfile = filepath.Join(wd, "stock_master_data", "stock_fundamental_202503.csv")
+	stockDetailfile = filepath.Join(wd, "stock_master_data", "stock_profile_202503.csv")
 }
 
 func importStockMasterDataFromCSV(c echo.Context) error {
