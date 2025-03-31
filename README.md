@@ -27,6 +27,7 @@ Create or Edit new tasks in the modal
 
 ### Financial Information Collection
 Tool list
+
 <img width="302" alt="news_tool" src="https://github.com/user-attachments/assets/832df3a6-0ae0-4f98-8ce1-77c9f3272ae7" />
 
 Press `View Headline`, then it crawls the latest news in [Bloomberg](https://www.bloomberg.co.jp/).
