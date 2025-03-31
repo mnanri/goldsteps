@@ -2,6 +2,15 @@
 Task Management and Financial Information Collection
 ![dashboard_20250328](https://github.com/user-attachments/assets/4c8d3ddc-1082-4d87-889b-3bd8b53fca29)
 
+## Tech Stat
+* Backend : Go 
+* Server-side Framework : Echo
+
+* Frontend : Node.js (npm)
+* Client-side Framework : Next.js
+
+* Docker
+
 ## Setup
 To execute services, run `cd goldsteps && make local` for local or `cd goldsteps && make build && make up` for Docker.
 
